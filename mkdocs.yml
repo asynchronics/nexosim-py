@@ -1,0 +1,40 @@
+site_name: nexosim
+
+repo_url: https://github.com/asynchronics/nexosim-py/
+
+nav:
+  - Introduction: index.md
+  - Reference:
+      - "nexosim": mod_root.md
+      - "nexosim.exceptions": mod_exceptions.md
+      - "nexosim.time": mod_time.md
+      - "nexosim.types": mod_types.md
+
+theme:
+  name: "material"
+  features:
+    - navigation.expand
+
+plugins:
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: false
+            members_order: source
+
+  - include-markdown
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+watch:
+  - src
