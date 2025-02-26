@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+import pytest
+
 from nexosim import Simulation
 
 # from nexosim.time import Duration, MonotonicTime
@@ -56,7 +58,7 @@ class TestLoad:
 
     type = VarA | VarB | VarC | VarD | VarE | VarF | VarG
 
-
+@pytest.mark.skip
 def test_run():
     # sim = Simulation(address="localhost:41633")
     sim = Simulation(address="unix:///tmp/nexo")
@@ -73,5 +75,3 @@ def test_run():
     print(load2)
     print(load == load2)
 
-
-test_run()

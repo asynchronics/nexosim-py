@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+import pytest
+
 from nexosim import Simulation
 
 
@@ -10,7 +12,7 @@ class Duration:
     secs: int = 0
     nanos: int = 0
 
-
+@pytest.mark.skip
 def test_run():
     pump_flow_rate = 4.5e-6
     init_tank_volume = 1.5e-3
@@ -56,6 +58,3 @@ def test_run():
     t = simu.step()
     print(t)
     print("flow rate: {}".format(simu.read_events("flow_rate")))
-
-
-test_run()
