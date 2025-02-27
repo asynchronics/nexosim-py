@@ -16,7 +16,7 @@ dataclasses, using e.g. the standard `@dataclasses.dataclass` decorator or the
 
 Unit `struct` types are in turn represented by empty classes deriving from the
 [UnitType][nexosim.types.UnitType] class. Likewise, tuple `struct` types are
-represented by deriving from one of the `TupleType*Arg` classes.
+represented by deriving from the `TupleType` class.
 
 For instance, these Rust `struct` types:
 
@@ -36,7 +36,7 @@ can be defined on the Python side with:
 ```py
 from dataclasses import dataclass
 
-from nexosim.types import UnitType, TupleType2Arg
+from nexosim.types import UnitType, TupleType
 
 @dataclass
 class MyRegularStruct:
@@ -45,34 +45,7 @@ class MyRegularStruct:
 
 class MyUnitStruct(UnitType): ... # no implementation needed
 
-class MyTupleStruct(TupleType2Arg[int, str]): ... # no implementation needed
-```
-
-In the case of tuple `struct` types, if you don't use a type checker or if your
-type checker supports dynamically-generated base classes (as of the day of this
-writing, this is the case for *Pyright* but not *Mypy*), it is possible to save
-a bit of typing by using the convenience
-[`tuple_type`][nexosim.types.tuple_type] type constructor instead of the
-`TupleType*Arg` classes. For instant, the above `MyTupleStruct` could be instead
-defined with:
-
-```py
-from nexosim.types import tuple_type
-
-class MyTupleStruct(tuple_type(int, str)): ...
-```
-
-Note that tuple `struct` types with arity greater than 16 must be defined
-manually with the [`tupleclass`][nexosim.types.tupleclass] decorator. This is
-for instance how [`TupleType2Arg`][nexosim.types.TupleType2Arg] is defined:
-
-```py
-from nexosim.types import variantclass
-
-@tupleclass
-class TupleType2Arg[Arg0, Arg1]:
-    _0: Arg0
-    _1: Arg1
+class MyTupleStruct(TupleType[int, str]): ... # no implementation needed
 ```
 
 ## Enum-like classes
@@ -106,13 +79,13 @@ can be defined on the Python side with:
 
 ```py
 from dataclasses import dataclass
-from nexosim.types import enumclass, UnitType, TupleType2Arg
+from nexosim.types import enumclass, UnitType, TupleType
 
 @enumclass
 class MyEnum:
     class MyUnitVariant(UnitType): ...
 
-    class MyTupleVariant(TupleType2Arg[int, str]): ...
+    class MyTupleVariant(TupleType[int, str]): ...
 
     @dataclass
     class MyStructVariant:
@@ -158,7 +131,7 @@ field, for instance:
 class MyEnum:
     class MyUnitVariant(UnitType): ...
 
-    class MyTupleVariant(TupleType2Arg[int, str]): ...
+    class MyTupleVariant(TupleType[int, str]): ...
 
     @dataclass
     class MyStructVariant:
@@ -218,23 +191,7 @@ import typing_extensions
 from ._config import cbor2_converter as _cbor2_converter
 
 _T = typing.TypeVar("_T")
-
-_Arg0 = typing.TypeVar("_Arg0")
-_Arg1 = typing.TypeVar("_Arg1")
-_Arg2 = typing.TypeVar("_Arg2")
-_Arg3 = typing.TypeVar("_Arg3")
-_Arg4 = typing.TypeVar("_Arg4")
-_Arg5 = typing.TypeVar("_Arg5")
-_Arg6 = typing.TypeVar("_Arg6")
-_Arg7 = typing.TypeVar("_Arg7")
-_Arg8 = typing.TypeVar("_Arg8")
-_Arg9 = typing.TypeVar("_Arg9")
-_Arg10 = typing.TypeVar("_Arg10")
-_Arg11 = typing.TypeVar("_Arg11")
-_Arg12 = typing.TypeVar("_Arg12")
-_Arg13 = typing.TypeVar("_Arg13")
-_Arg14 = typing.TypeVar("_Arg14")
-_Arg15 = typing.TypeVar("_Arg15")
+_Args = typing_extensions.TypeVarTuple("_Args")
 
 
 def enumclass(cls: type[_T]) -> type[_T]:
@@ -409,634 +366,31 @@ class UnitType:
 _cbor2_converter.register_structure_hook(UnitType, lambda d, t: t())
 _cbor2_converter.register_unstructure_hook(UnitType, _unit_unstructure_hook)
 
+class MetaTupleType(type):
+    """Metaclass for constructing TupleType classes.
+    
+    Adds fields based on the class' type annotations, by overwriting 
+    the field annotations.
 
-@tupleclass
-class TupleType0Arg:
-    """Base class for nullary tuple-like types."""
-
-    pass
-
-
-@tupleclass
-class TupleType1Arg(typing.Generic[_Arg0]):
-    """Base class for unary tuple-like types."""
-
-    _0: _Arg0
-
-
-@tupleclass
-class TupleType2Arg(typing.Generic[_Arg0, _Arg1]):
-    """Base class for binary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-
-
-@tupleclass
-class TupleType3Arg(typing.Generic[_Arg0, _Arg1, _Arg2]):
-    """Base class for ternary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-
-
-@tupleclass
-class TupleType4Arg(typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3]):
-    """Base class for 4-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-
-
-@tupleclass
-class TupleType5Arg(typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]):
-    """Base class for 5-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-
-
-@tupleclass
-class TupleType6Arg(typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]):
-    """Base class for 6-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-
-
-@tupleclass
-class TupleType7Arg(typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]):
-    """Base class for 7-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-
-
-@tupleclass
-class TupleType8Arg(
-    typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]
-):
-    """Base class for 8-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-
-
-@tupleclass
-class TupleType9Arg(
-    typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]
-):
-    """Base class for 9-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-
-
-@tupleclass
-class TupleType10Arg(
-    typing.Generic[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9]
-):
-    """Base class for 10-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-
-
-@tupleclass
-class TupleType11Arg(
-    typing.Generic[
-        _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
-    ]
-):
-    """Base class for 11-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-    _10: _Arg10
-
-
-@tupleclass
-class TupleType12Arg(
-    typing.Generic[
-        _Arg0,
-        _Arg1,
-        _Arg2,
-        _Arg3,
-        _Arg4,
-        _Arg5,
-        _Arg6,
-        _Arg7,
-        _Arg8,
-        _Arg9,
-        _Arg10,
-        _Arg11,
-    ]
-):
-    """Base class for 12-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-    _10: _Arg10
-    _11: _Arg11
-
-
-@tupleclass
-class TupleType13Arg(
-    typing.Generic[
-        _Arg0,
-        _Arg1,
-        _Arg2,
-        _Arg3,
-        _Arg4,
-        _Arg5,
-        _Arg6,
-        _Arg7,
-        _Arg8,
-        _Arg9,
-        _Arg10,
-        _Arg11,
-        _Arg12,
-    ]
-):
-    """Base class for 13-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-    _10: _Arg10
-    _11: _Arg11
-    _12: _Arg12
-
-
-@tupleclass
-class TupleType14Arg(
-    typing.Generic[
-        _Arg0,
-        _Arg1,
-        _Arg2,
-        _Arg3,
-        _Arg4,
-        _Arg5,
-        _Arg6,
-        _Arg7,
-        _Arg8,
-        _Arg9,
-        _Arg10,
-        _Arg11,
-        _Arg12,
-        _Arg13,
-    ]
-):
-    """Base class for 14-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-    _10: _Arg10
-    _11: _Arg11
-    _12: _Arg12
-    _13: _Arg13
-
-
-@tupleclass
-class TupleType15Arg(
-    typing.Generic[
-        _Arg0,
-        _Arg1,
-        _Arg2,
-        _Arg3,
-        _Arg4,
-        _Arg5,
-        _Arg6,
-        _Arg7,
-        _Arg8,
-        _Arg9,
-        _Arg10,
-        _Arg11,
-        _Arg12,
-        _Arg13,
-        _Arg14,
-    ]
-):
-    """Base class for 15-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-    _10: _Arg10
-    _11: _Arg11
-    _12: _Arg12
-    _13: _Arg13
-    _14: _Arg14
-
-
-@tupleclass
-class TupleType16Arg(
-    typing.Generic[
-        _Arg0,
-        _Arg1,
-        _Arg2,
-        _Arg3,
-        _Arg4,
-        _Arg5,
-        _Arg6,
-        _Arg7,
-        _Arg8,
-        _Arg9,
-        _Arg10,
-        _Arg11,
-        _Arg12,
-        _Arg13,
-        _Arg14,
-        _Arg15,
-    ]
-):
-    """Base class for 16-ary tuple-like types."""
-
-    _0: _Arg0
-    _1: _Arg1
-    _2: _Arg2
-    _3: _Arg3
-    _4: _Arg4
-    _5: _Arg5
-    _6: _Arg6
-    _7: _Arg7
-    _8: _Arg8
-    _9: _Arg9
-    _10: _Arg10
-    _11: _Arg11
-    _12: _Arg12
-    _13: _Arg13
-    _14: _Arg14
-    _15: _Arg15
-
-
-@typing.overload
-def tuple_type() -> type[TupleType0Arg]: ...
-@typing.overload
-def tuple_type(_0: type[_Arg0]) -> type[TupleType1Arg[_Arg0]]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1]
-) -> type[TupleType2Arg[_Arg0, _Arg1]]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2]
-) -> TupleType3Arg[_Arg0, _Arg1, _Arg2]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3]
-) -> TupleType4Arg[_Arg0, _Arg1, _Arg2, _Arg3]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3], _4: type[_Arg4]
-) -> TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-) -> TupleType6Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-) -> TupleType7Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-) -> TupleType8Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-) -> TupleType9Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-) -> TupleType10Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9
-]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-) -> TupleType11Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
-]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-) -> TupleType12Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10, _Arg11
-]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-) -> TupleType13Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-    _13: type[_Arg13],
-) -> TupleType14Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-    _13: type[_Arg13],
-    _14: type[_Arg14],
-) -> TupleType15Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-    _Arg14,
-]: ...
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-    _13: type[_Arg13],
-    _14: type[_Arg14],
-    _15: type[_Arg15],
-) -> TupleType16Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-    _Arg14,
-    _Arg15,
-]: ...
-
-
-def tuple_type(*args):  # type: ignore
-    """A convenient type constructor for tuple-like types.
-
-    This function can saves some typing and reduce import boilerplate compared
-    to manually specifying the `TupleType*Arg` base classes. It takes the types
-    of the components as arguments and is overloaded by arity to return the
-    appropriate `TupleType*Arg` class.
-
-    Warning:
-        Note that not all type checkers support dynamically generated base
-        classes and it may be necessary to manally specify the appropriate
-        `TupleType*Arg` base class in order to satisfy the type checker.
+    The metaclass leaves the new class unchanged, if it directly extends 
+    `typing.Generic`.
     """
-    match len(args):  # type: ignore
-        case 0:
-            return TupleType0Arg
-        case 1:
-            return TupleType1Arg[*args]  # type: ignore
-        case 2:
-            return TupleType2Arg[*args]  # type: ignore
-        case 3:
-            return TupleType3Arg[*args]  # type: ignore
-        case 4:
-            return TupleType4Arg[*args]  # type: ignore
-        case 5:
-            return TupleType5Arg[*args]  # type: ignore
-        case 6:
-            return TupleType6Arg[*args]  # type: ignore
-        case 7:
-            return TupleType7Arg[*args]  # type: ignore
-        case 8:
-            return TupleType8Arg[*args]  # type: ignore
-        case 9:
-            return TupleType9Arg[*args]  # type: ignore
-        case 10:
-            return TupleType10Arg[*args]  # type: ignore
-        case 11:
-            return TupleType11Arg[*args]  # type: ignore
-        case 12:
-            return TupleType12Arg[*args]  # type: ignore
-        case 13:
-            return TupleType13Arg[*args]  # type: ignore
-        case 14:
-            return TupleType14Arg[*args]  # type: ignore
-        case 15:
-            return TupleType15Arg[*args]  # type: ignore
-        case 16:
-            return TupleType16Arg[*args]  # type: ignore
-        case _:
-            raise NotImplementedError(
-                "only variant arity up to 16 is implemented; use the 'variantclass' decorator instead"
-            )
+    def __new__(
+            mcs,
+            name: str,
+            bases: tuple[type, ...],
+            namespace: dict[str, typing.Any],
+            **kwargs: typing.Any
+        ):
+
+        if typing.Generic in bases:
+            return super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if "__orig_bases__" in namespace:
+            ty_list = typing.get_args(namespace["__orig_bases__"][0])
+            namespace["__annotations__"] = {f"_{i}": ty for i, ty in enumerate(ty_list)}
+
+        return tupleclass(super().__new__(mcs, name, bases, namespace, **kwargs))
+
+class TupleType(typing.Generic[*_Args], metaclass=MetaTupleType):
+    """Base class for tuple-like classes."""
