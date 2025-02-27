@@ -28,3 +28,15 @@ enableExperimentalFeatures = true
 src = ["src", "tests"]
 extend-exclude = ["src/nexosim/_proto"]
 pydocstyle.convention = "google"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra"
+testpaths = [
+    "tests",
+    "integration",
+]
+pythonpath = [
+  "src"
+]
+asyncio_default_fixture_loop_scope = "function"

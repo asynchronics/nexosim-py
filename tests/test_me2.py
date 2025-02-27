@@ -2,10 +2,12 @@
 
 from dataclasses import dataclass
 
+import pytest
+
 from nexosim import Simulation
 
 # from nexosim.time import Duration, MonotonicTime
-from nexosim.types import enumclass, UnitType, TupleType1Arg, tuple_type
+from nexosim.types import enumclass, UnitType, TupleType
 
 
 @enumclass
@@ -15,9 +17,9 @@ class TestSubload:
     @dataclass
     class VarB: ...
 
-    class VarC(tuple_type(int)): ...
+    class VarC(TupleType[int]): ...
 
-    class VarD(tuple_type(str, float)): ...
+    class VarD(TupleType[str, float]): ...
 
     @dataclass
     class VarE:
@@ -33,21 +35,21 @@ class TestSubload:
 
 @enumclass
 class TestLoad:
-    class VarA(tuple_type()): ...
+    class VarA(TupleType): ...
 
     @dataclass
     class VarB: ...
 
-    class VarC(tuple_type(int)): ...
+    class VarC(TupleType[int]): ...
 
-    class VarD(tuple_type(str, float)): ...
+    class VarD(TupleType[str, float]): ...
 
     @dataclass
     class VarE:
         x: str
         y: bool
 
-    class VarF(TupleType1Arg[TestSubload.type]): ...
+    class VarF(TupleType[TestSubload.type]): ...
 
     @dataclass
     class VarG:
@@ -56,7 +58,7 @@ class TestLoad:
 
     type = VarA | VarB | VarC | VarD | VarE | VarF | VarG
 
-
+@pytest.mark.skip
 def test_run():
     # sim = Simulation(address="localhost:41633")
     sim = Simulation(address="unix:///tmp/nexo")
@@ -73,5 +75,3 @@ def test_run():
     print(load2)
     print(load == load2)
 
-
-test_run()

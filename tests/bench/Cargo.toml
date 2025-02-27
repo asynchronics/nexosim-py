@@ -1,0 +1,9 @@
+[package]
+name = "grpc-python"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.30", features = ["derive"] }
+nexosim = { git = "https://github.com/asynchronics/nexosim.git", version = "0.3", features = ["server"] }
+serde = { version = "1.0", features = ["derive"] }
