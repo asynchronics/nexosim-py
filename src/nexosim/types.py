@@ -307,7 +307,7 @@ def _struct_unstructure_hook(e: typing.Any) -> typing.Any:  # type: ignore
 
 
 @typing_extensions.dataclass_transform()
-def tupleclass(cls: typing.Type[_T]) -> typing.Type[_T]:
+def _tupleclass(cls: typing.Type[_T]) -> typing.Type[_T]:
     """Decorator that marks a class as a tuple-like type.
 
     This automatically makes the class a dataclass.
@@ -390,7 +390,7 @@ class MetaTupleType(type):
             ty_list = typing.get_args(namespace["__orig_bases__"][0])
             namespace["__annotations__"] = {f"_{i}": ty for i, ty in enumerate(ty_list)}
 
-        return tupleclass(super().__new__(mcs, name, bases, namespace, **kwargs))
+        return _tupleclass(super().__new__(mcs, name, bases, namespace, **kwargs))
 
 class TupleType(typing.Generic[*_Args], metaclass=MetaTupleType):
     """Base class for tuple-like classes."""
