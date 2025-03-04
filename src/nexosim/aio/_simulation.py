@@ -127,6 +127,13 @@ class Simulation:
 
         Returns:
             The current simulation time.
+
+        Raises:
+        exceptions.SimulationError: One of the exceptions derived from
+            [`SimulationError`][nexosim.exceptions.SimulationError] may be
+            raised, such as:
+
+            - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
         request = simulation_pb2.TimeRequest()
@@ -164,6 +171,7 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
         """
 
         request = simulation_pb2.StepRequest()
@@ -209,6 +217,7 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
         """
 
         kwargs = {}
@@ -264,7 +273,7 @@ class Simulation:
 
         Args:
             deadline: The target time, specified either as an absolute time
-                set in the future of the current simulation time as a strictly
+                set in the future of the current simulation time or as a strictly
                 positive duration relative to the current simulation time.
 
             source_name: The name of the event source.
