@@ -51,6 +51,9 @@ class Simulation:
     `unix:/absolute/path/to/socket` or alternatively
     `unix:///absolute/path/to/socket`).
 
+    `Simulation` is a context manager. If not used in a `with` statement,
+    the `close()` method should be called after use.
+
     Args:
         address: the address at which the NeXosim server is running.
     """
@@ -66,8 +69,18 @@ class Simulation:
             else None
         )
 
-        channel = grpc.insecure_channel(address, options)  # type: ignore
-        self._stub = simulation_pb2_grpc.SimulationStub(channel)
+        self._channel = grpc.insecure_channel(address, options)  # type: ignore
+        self._stub = simulation_pb2_grpc.SimulationStub(self._channel)
+
+    def __enter__(self) -> typing.Self:
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
+
+    def close(self) -> None:
+        """Closes the grpc channel."""
+        self._channel.close()
 
     def start(self, cfg: typing.Any = None) -> None:
         """
