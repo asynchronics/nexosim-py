@@ -3,17 +3,25 @@ site_name: nexosim
 repo_url: https://github.com/asynchronics/nexosim-py/
 
 nav:
-  - Introduction: index.md
+  - index.md
+  - User Guide: user_guide.md
   - Reference:
-      - "nexosim": mod_root.md
-      - "nexosim.exceptions": mod_exceptions.md
-      - "nexosim.time": mod_time.md
-      - "nexosim.types": mod_types.md
+      - "nexosim": reference/mod_root.md
+      - "nexosim.aio": reference/mod_aio.md
+      - "nexosim.exceptions": reference/mod_exceptions.md
+      - "nexosim.time": reference/mod_time.md
+      - "nexosim.types": reference/mod_types.md
 
 theme:
   name: "material"
   features:
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.expand
+    - navigation.indexes
+    - content.code.copy
+    - search.suggest
+    - search.highlight
 
 plugins:
   - autorefs
@@ -26,6 +34,7 @@ plugins:
             members_order: source
 
   - include-markdown
+  - search
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -35,6 +44,15 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
 
 watch:
   - src
