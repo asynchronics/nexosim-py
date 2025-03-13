@@ -74,7 +74,7 @@ class Simulation:
 
     def __enter__(self) -> typing.Self:
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
 
@@ -186,6 +186,49 @@ class Simulation:
         request = simulation_pb2.StepRequest()
         reply = self._stub.Step(request)
 
+        if reply.HasField("time"):
+            return MonotonicTime(reply.time.seconds, reply.time.nanos)
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        raise exceptions.UnexpectedError("unexpected response")
+
+    def step_unbounded(self) -> MonotonicTime:
+        """Iteratively advances the simulation time until the simulation end, as
+        if by calling [Simulation.step][nexosim.Simulation.step] repeatedly.
+
+        For real-time clock simulation will end on calling `halt` only (`halt`
+        is effective on the next event, so bench constructor or user shall
+        ensure periodic events with appropriately small period), for non
+        real-time clock simulation will end on exhausting scheduled events or
+        calling `halt`.
+
+        This method blocks other step* and process* requests until completed.
+        The simulation time upon completion is returned.
+
+        Returns:
+            The final simulation time.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+                - [`SimulationTerminatedError`][nexosim.exceptions.SimulationTerminatedError]
+                - [`SimulationDeadlockError`][nexosim.exceptions.SimulationDeadlockError]
+                - [`SimulationMessageLossError`][nexosim.exceptions.SimulationMessageLossError]
+                - [`SimulationNoRecipientError`][nexosim.exceptions.SimulationNoRecipientError]
+                - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
+                - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
+                - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
+
+        """
+
+        request = simulation_pb2.StepUnboundedRequest()
+        reply = self._stub.StepUnbounded(request) # type: ignore
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -495,6 +538,44 @@ class Simulation:
             return [cbor2.loads(reply) for reply in reply.events]
         else:
             return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
+
+    def await_event(self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object) -> T:
+        """Waits for the next event from an event sink.
+
+        The call is blocking.
+
+        Args:
+            sink_name: The name of the event sink.
+
+            event_type: The Python type to which events should be mapped. If
+                left unspecified, events are mapped to their canonical
+                representation in terms of built-in Python types such as `bool`,
+                `int`, `float`, `str`, `bytes`, `dict` and `list`.
+
+        Returns:
+            An event.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
+                - [`SinkNotFoundError`][nexosim.exceptions.SinkNotFoundError]
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+
+        request = simulation_pb2.AwaitEventRequest(sink_name=sink_name,
+                                                   timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos))
+        reply = self._stub.AwaitEvent(request)
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        if event_type is object:
+            return cbor2.loads(reply.event)
+        else:
+            return cbor2_converter.loads(reply.event, event_type)  # type: ignore
 
     def open_sink(self, sink_name: str) -> None:
         """Enables the reception of new events by the specified sink.

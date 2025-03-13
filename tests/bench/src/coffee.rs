@@ -2,6 +2,8 @@
 
 use std::time::Duration;
 
+use serde::{Deserialize, Serialize};
+
 use nexosim::model::{Context, InitializedModel, Model};
 use nexosim::ports::Output;
 use nexosim::simulation::ActionKey;
@@ -90,7 +92,6 @@ impl Controller {
 
     /// Starts brewing or cancels the current brew -- input port.
     pub(crate) async fn brew_cmd(&mut self, _: (), context: &mut Context<Self>) {
-
         // If a brew was ongoing, sending the brew command is interpreted as a
         // request to cancel it.
         if let Some(key) = self.stop_brew_key.take() {
@@ -127,7 +128,7 @@ impl Controller {
 impl Model for Controller {}
 
 /// ON/OFF pump command.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize)]
 pub(crate) enum PumpCommand {
     On,
     Off,
@@ -159,7 +160,6 @@ impl Tank {
 
     /// Water volume added [m³] -- input port.
     pub(crate) async fn fill(&mut self, added_volume: f64, context: &mut Context<Self>) {
-
         // Ignore zero and negative values. We could also impose a maximum based
         // on tank capacity.
         if added_volume <= 0.0 {
@@ -293,9 +293,8 @@ struct TankDynamicState {
 }
 
 /// Water level in the tank.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize)]
 pub(crate) enum WaterSenseState {
     Empty,
     NotEmpty,
 }
-

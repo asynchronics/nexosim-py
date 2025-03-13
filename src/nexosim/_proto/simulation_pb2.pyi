@@ -18,6 +18,7 @@ class ErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     INVALID_DEADLINE: _ClassVar[ErrorCode]
     INVALID_MESSAGE: _ClassVar[ErrorCode]
     INVALID_KEY: _ClassVar[ErrorCode]
+    INVALID_TIMEOUT: _ClassVar[ErrorCode]
     INITIALIZER_PANIC: _ClassVar[ErrorCode]
     SIMULATION_NOT_STARTED: _ClassVar[ErrorCode]
     SIMULATION_HALTED: _ClassVar[ErrorCode]
@@ -39,6 +40,7 @@ INVALID_PERIOD: ErrorCode
 INVALID_DEADLINE: ErrorCode
 INVALID_MESSAGE: ErrorCode
 INVALID_KEY: ErrorCode
+INVALID_TIMEOUT: ErrorCode
 INITIALIZER_PANIC: ErrorCode
 SIMULATION_NOT_STARTED: ErrorCode
 SIMULATION_HALTED: ErrorCode
@@ -136,6 +138,18 @@ class StepUntilReply(_message.Message):
     error: Error
     def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
+class StepUnboundedRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class StepUnboundedReply(_message.Message):
+    __slots__ = ("time", "error")
+    TIME_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    time: _timestamp_pb2.Timestamp
+    error: Error
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
 class ScheduleEventRequest(_message.Message):
     __slots__ = ("time", "duration", "source_name", "event", "period", "with_key")
     TIME_FIELD_NUMBER: _ClassVar[int]
@@ -226,6 +240,22 @@ class ReadEventsReply(_message.Message):
     error: Error
     def __init__(self, events: _Optional[_Iterable[bytes]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
+class AwaitEventRequest(_message.Message):
+    __slots__ = ("sink_name", "timeout")
+    SINK_NAME_FIELD_NUMBER: _ClassVar[int]
+    TIMEOUT_FIELD_NUMBER: _ClassVar[int]
+    sink_name: str
+    timeout: _duration_pb2.Duration
+    def __init__(self, sink_name: _Optional[str] = ..., timeout: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+
+class AwaitEventReply(_message.Message):
+    __slots__ = ("event", "error")
+    EVENT_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    event: bytes
+    error: Error
+    def __init__(self, event: _Optional[bytes] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
 class OpenSinkRequest(_message.Message):
     __slots__ = ("sink_name",)
     SINK_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -255,7 +285,7 @@ class CloseSinkReply(_message.Message):
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class AnyRequest(_message.Message):
-    __slots__ = ("init_request", "halt_request", "time_request", "step_request", "step_until_request", "schedule_event_request", "cancel_event_request", "process_event_request", "process_query_request", "read_events_request", "open_sink_request", "close_sink_request")
+    __slots__ = ("init_request", "halt_request", "time_request", "step_request", "step_until_request", "schedule_event_request", "cancel_event_request", "process_event_request", "process_query_request", "read_events_request", "open_sink_request", "close_sink_request", "await_event_request", "step_unbounded_request")
     INIT_REQUEST_FIELD_NUMBER: _ClassVar[int]
     HALT_REQUEST_FIELD_NUMBER: _ClassVar[int]
     TIME_REQUEST_FIELD_NUMBER: _ClassVar[int]
@@ -268,6 +298,8 @@ class AnyRequest(_message.Message):
     READ_EVENTS_REQUEST_FIELD_NUMBER: _ClassVar[int]
     OPEN_SINK_REQUEST_FIELD_NUMBER: _ClassVar[int]
     CLOSE_SINK_REQUEST_FIELD_NUMBER: _ClassVar[int]
+    AWAIT_EVENT_REQUEST_FIELD_NUMBER: _ClassVar[int]
+    STEP_UNBOUNDED_REQUEST_FIELD_NUMBER: _ClassVar[int]
     init_request: InitRequest
     halt_request: HaltRequest
     time_request: TimeRequest
@@ -280,4 +312,6 @@ class AnyRequest(_message.Message):
     read_events_request: ReadEventsRequest
     open_sink_request: OpenSinkRequest
     close_sink_request: CloseSinkRequest
-    def __init__(self, init_request: _Optional[_Union[InitRequest, _Mapping]] = ..., halt_request: _Optional[_Union[HaltRequest, _Mapping]] = ..., time_request: _Optional[_Union[TimeRequest, _Mapping]] = ..., step_request: _Optional[_Union[StepRequest, _Mapping]] = ..., step_until_request: _Optional[_Union[StepUntilRequest, _Mapping]] = ..., schedule_event_request: _Optional[_Union[ScheduleEventRequest, _Mapping]] = ..., cancel_event_request: _Optional[_Union[CancelEventRequest, _Mapping]] = ..., process_event_request: _Optional[_Union[ProcessEventRequest, _Mapping]] = ..., process_query_request: _Optional[_Union[ProcessQueryRequest, _Mapping]] = ..., read_events_request: _Optional[_Union[ReadEventsRequest, _Mapping]] = ..., open_sink_request: _Optional[_Union[OpenSinkRequest, _Mapping]] = ..., close_sink_request: _Optional[_Union[CloseSinkRequest, _Mapping]] = ...) -> None: ...
+    await_event_request: AwaitEventRequest
+    step_unbounded_request: StepUnboundedRequest
+    def __init__(self, init_request: _Optional[_Union[InitRequest, _Mapping]] = ..., halt_request: _Optional[_Union[HaltRequest, _Mapping]] = ..., time_request: _Optional[_Union[TimeRequest, _Mapping]] = ..., step_request: _Optional[_Union[StepRequest, _Mapping]] = ..., step_until_request: _Optional[_Union[StepUntilRequest, _Mapping]] = ..., schedule_event_request: _Optional[_Union[ScheduleEventRequest, _Mapping]] = ..., cancel_event_request: _Optional[_Union[CancelEventRequest, _Mapping]] = ..., process_event_request: _Optional[_Union[ProcessEventRequest, _Mapping]] = ..., process_query_request: _Optional[_Union[ProcessQueryRequest, _Mapping]] = ..., read_events_request: _Optional[_Union[ReadEventsRequest, _Mapping]] = ..., open_sink_request: _Optional[_Union[OpenSinkRequest, _Mapping]] = ..., close_sink_request: _Optional[_Union[CloseSinkRequest, _Mapping]] = ..., await_event_request: _Optional[_Union[AwaitEventRequest, _Mapping]] = ..., step_unbounded_request: _Optional[_Union[StepUnboundedRequest, _Mapping]] = ...) -> None: ...

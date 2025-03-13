@@ -1,7 +1,7 @@
 //! Tool for starting a nexosim server set up with a test bench.
-use nexosim::server;
 use clap::Parser;
 use grpc_python::sims;
+use nexosim::server;
 
 /// Start a nexosim server set up with a test bench.
 #[derive(Parser)]
@@ -16,7 +16,7 @@ struct Cli {
 
     /// Set the address of the server.
     #[arg(short, long)]
-    address: Option<String>
+    address: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -49,41 +49,41 @@ fn main() {
             } else {
                 String::from("/tmp/nexo")
             }
-        } 
-        Some(value) => {
-            value
         }
+        Some(value) => value,
     };
 
-    if cli.http{
+    if cli.http {
         match cli.bench {
             Bench::Coffee => {
                 println!("HTTP Coffee server listening at {}", addr);
                 server::run(sims::coffee_bench, addr.parse().unwrap())
-            },
+            }
             Bench::CoffeeRT => {
                 println!("HTTP CoffeeRT server listening at {}", addr);
                 server::run(sims::rt_coffee_bench, addr.parse().unwrap())
-            },
+            }
             Bench::Bench2 => {
                 println!("HTTP Bench2 server listening at {}", addr);
                 server::run(sims::bench_2, addr.parse().unwrap())
             }
-        }.unwrap();
+        }
+        .unwrap();
     } else {
         match cli.bench {
             Bench::Coffee => {
                 println!("Local Coffee server listening at {}", addr);
                 server::run_local(sims::coffee_bench, addr)
-            },
+            }
             Bench::CoffeeRT => {
                 println!("Local CoffeeRT server listening at {}", addr);
                 server::run_local(sims::rt_coffee_bench, addr)
-            },
+            }
             Bench::Bench2 => {
                 println!("Local Bench2 server listening at {}", addr);
                 server::run_local(sims::bench_2, addr)
             }
-        }.unwrap();
+        }
+        .unwrap();
     }
 }

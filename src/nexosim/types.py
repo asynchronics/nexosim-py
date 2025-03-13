@@ -367,11 +367,11 @@ _cbor2_converter.register_unstructure_hook(UnitType, _unit_unstructure_hook)
 
 class MetaTupleType(type):
     """Metaclass for constructing TupleType classes.
-    
-    Adds fields based on the class' type annotations, by overwriting 
+
+    Adds fields based on the class' type annotations, by overwriting
     the field annotations.
 
-    The metaclass leaves the new class unchanged, if it directly extends 
+    The metaclass leaves the new class unchanged, if it directly extends
     `typing.Generic`.
     """
     def __new__(
