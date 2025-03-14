@@ -1,17 +1,15 @@
-use nexosim::ports::{EventSource, EventBuffer, EventSlot};
+use nexosim::ports::{EventQueue, EventSlot, EventSource};
 use nexosim::registry::EndpointRegistry;
 use nexosim::simulation::{Mailbox, SimInit, Simulation, SimulationError};
-use nexosim::time::{MonotonicTime, AutoSystemClock};
+use nexosim::time::{AutoSystemClock, MonotonicTime};
 
-use crate::coffee;
 use crate::bench_2;
-
+use crate::coffee;
 
 /// Create the bench assembly.
 pub fn coffee_bench(
     init_tank_volume: Option<f64>,
 ) -> Result<(Simulation, EndpointRegistry), SimulationError> {
-
     let pump_flow_rate = 4.5e-6;
     let init_tank_volume = init_tank_volume.unwrap_or(1.5e-3);
 
@@ -25,17 +23,22 @@ pub fn coffee_bench(
     let tank_mbox = Mailbox::new();
 
     // Connections.
-    controller.pump_cmd.connect(coffee::Pump::command, &pump_mbox);
+    controller
+        .pump_cmd
+        .connect(coffee::Pump::command, &pump_mbox);
     tank.water_sense
         .connect(coffee::Controller::water_sense, &controller_mbox);
-    pump.flow_rate.connect(coffee::Tank::set_flow_rate, &tank_mbox);
+    pump.flow_rate
+        .connect(coffee::Tank::set_flow_rate, &tank_mbox);
 
     // Endpoints.
     let mut registry = EndpointRegistry::new();
 
-    let flow_rate = EventSlot::new();
+    let flow_rate = EventQueue::new();
     pump.flow_rate.connect_sink(&flow_rate);
-    registry.add_event_sink(flow_rate, "flow_rate").unwrap();
+    registry
+        .add_event_sink(flow_rate.into_reader(), "flow_rate")
+        .unwrap();
 
     let controller_addr = controller_mbox.address();
     let tank_addr = tank_mbox.address();
@@ -65,7 +68,6 @@ pub fn coffee_bench(
 pub fn rt_coffee_bench(
     init_tank_volume: Option<f64>,
 ) -> Result<(Simulation, EndpointRegistry), SimulationError> {
-
     let pump_flow_rate = 4.5e-6;
     let init_tank_volume = init_tank_volume.unwrap_or(1.5e-3);
 
@@ -79,17 +81,37 @@ pub fn rt_coffee_bench(
     let tank_mbox = Mailbox::new();
 
     // Connections.
-    controller.pump_cmd.connect(coffee::Pump::command, &pump_mbox);
+    controller
+        .pump_cmd
+        .connect(coffee::Pump::command, &pump_mbox);
     tank.water_sense
         .connect(coffee::Controller::water_sense, &controller_mbox);
-    pump.flow_rate.connect(coffee::Tank::set_flow_rate, &tank_mbox);
+    pump.flow_rate
+        .connect(coffee::Tank::set_flow_rate, &tank_mbox);
 
     // Endpoints.
     let mut registry = EndpointRegistry::new();
 
-    let flow_rate = EventSlot::new();
+    let flow_rate = EventQueue::new();
     pump.flow_rate.connect_sink(&flow_rate);
-    registry.add_event_sink(flow_rate, "flow_rate").unwrap();
+    let water_sense = EventQueue::new();
+    tank.water_sense.connect_sink(&water_sense);
+    let pump_cmd = EventQueue::new();
+    controller.pump_cmd.connect_sink(&pump_cmd);
+    let latest_pump_cmd = EventSlot::new();
+    controller.pump_cmd.connect_sink(&latest_pump_cmd);
+    registry
+        .add_event_sink(flow_rate.into_reader(), "flow_rate")
+        .unwrap();
+    registry
+        .add_event_sink(water_sense.into_reader(), "water_sense")
+        .unwrap();
+    registry
+        .add_event_sink(pump_cmd.into_reader(), "pump_cmd")
+        .unwrap();
+    registry
+        .add_event_sink(latest_pump_cmd, "latest_pump_cmd")
+        .unwrap();
 
     let controller_addr = controller_mbox.address();
     let tank_addr = tank_mbox.address();
@@ -116,7 +138,6 @@ pub fn rt_coffee_bench(
     Ok((sim, registry))
 }
 
-
 pub fn bench_2(_cfg: bench_2::TestLoad) -> Result<(Simulation, EndpointRegistry), SimulationError> {
     let mut model = bench_2::MyModel::default();
 
@@ -127,9 +148,11 @@ pub fn bench_2(_cfg: bench_2::TestLoad) -> Result<(Simulation, EndpointRegistry)
     // Endpoints.
     let mut registry = EndpointRegistry::new();
 
-    let output = EventBuffer::new();
+    let output = EventQueue::new();
     model.output.connect_sink(&output);
-    registry.add_event_sink(output, "output").unwrap();
+    registry
+        .add_event_sink(output.into_reader(), "output")
+        .unwrap();
 
     let mut input = EventSource::new();
     input.connect(bench_2::MyModel::my_input, &model_addr);
