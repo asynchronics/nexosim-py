@@ -6,6 +6,7 @@ from nexosim.aio import Simulation
 
 from nexosim.time import Duration, MonotonicTime
 
+@pytest.mark.slow
 @pytest.mark.asyncio
 async def test_concurrent_event_and_read(rt_coffee):
     pump_flow_rate = 4.5e-6
