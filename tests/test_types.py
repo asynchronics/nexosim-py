@@ -1,26 +1,26 @@
 import dataclasses
 import pytest
-from nexosim.types import TupleType, UnitType, enumclass
+from nexosim.types import tuple_type, UnitType, enumclass
 from nexosim._config import cbor2_converter
 
 @pytest.fixture
 def tuple_type_0_arg():
     """A zero-arg tuple type class."""
-    class MyTupleType(TupleType): ...
+    class MyTupleType(tuple_type()): ...
 
     return MyTupleType
 
 @pytest.fixture
 def tuple_type_1_arg():
     """A TupleType[float] class."""
-    class MyTupleType(TupleType[float]): ...
+    class MyTupleType(tuple_type(float)): ...
 
     return MyTupleType
 
 @pytest.fixture
 def tuple_type_2_arg():
     """A TupleType[float, str] class."""
-    class MyTupleType(TupleType[float, str]): ...
+    class MyTupleType(tuple_type(float, str)): ...
 
     return MyTupleType
 
@@ -78,15 +78,6 @@ class TestUnitType:
         assert f(unit_type()) is None
 
 class TestTupleType:
-
-    def test_class_fields(self, tuple_type_2_arg):
-
-        _0, _1 = dataclasses.fields(tuple_type_2_arg)
-
-        assert _0.type is float
-        assert _0.name == "_0"
-        assert _1.type is str
-        assert _1.name == "_1"
 
     def test_structure_hook_0_arg(self, tuple_type_0_arg):
         f = cbor2_converter.get_structure_hook(tuple_type_0_arg)
