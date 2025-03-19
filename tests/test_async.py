@@ -63,6 +63,13 @@ async def sim(coffee):
         await sim.start()
         yield sim
 
+@pytest_asyncio.fixture
+async def rt_sim(rt_coffee):
+    """A started coffee bench simulation object."""
+    async with Simulation(rt_coffee) as sim:
+        await sim.start()
+        yield sim
+
 @pytest.mark.asyncio
 async def test_reinitialize_sim_losses_state(sim):
     await sim.step_until(Duration(1))
@@ -168,3 +175,15 @@ async def test_open_sink(sim):
     await sim.process_event("brew_cmd")
 
     assert await sim.read_events("flow_rate") == [4.5e-6]
+
+@pytest.mark.asyncio
+async def test_await_event_cast(rt_sim):
+    await rt_sim.schedule_event(Duration(1), "brew_cmd")
+
+    async def step():
+        await rt_sim.step()
+
+    async def await_event():
+        assert await rt_sim.await_event("flow_rate", Duration(2), str) == "4.5e-06"
+
+    await asyncio.gather(step(), await_event())

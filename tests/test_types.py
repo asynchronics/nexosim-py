@@ -84,7 +84,7 @@ class TestTupleType:
 
         assert f(None, tuple_type_0_arg) == tuple_type_0_arg()
 
-    def test__structure_hook_1_arg(self, tuple_type_1_arg):
+    def test_structure_hook_1_arg(self, tuple_type_1_arg):
         f = cbor2_converter.get_structure_hook(tuple_type_1_arg)
 
         assert f(0.0, tuple_type_1_arg) == tuple_type_1_arg(0.0)
