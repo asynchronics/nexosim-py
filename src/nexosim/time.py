@@ -114,7 +114,7 @@ def _assert_istime(hour: int, minute: int, second: int, nanosecond: int) -> None
     if not 0 <= second < 60:
         raise ValueError(f"second must be in 0..59, got '{second}'")
     if not 0 <= nanosecond < _NANOS_IN_SEC:
-        raise ValueError(f"microsecond must be in 0..999999, got '{nanosecond}'")
+        raise ValueError(f"nanosecond must be in 0..999999999, got '{nanosecond}'")
 
 
 @attrs.define(order=True)
@@ -170,16 +170,16 @@ class Duration:
 
             nanoseconds: A number of nanoseconds.
         """
-        carry_secs = nanoseconds // _NANOS_IN_SEC
-        secs = seconds + carry_secs + minutes * 60 + hours * 3_600 + days * 86_400
         nanos = (
             nanoseconds
-            - carry_secs * _NANOS_IN_SEC
             + 1_000 * microseconds
             + 1_000_000 * milliseconds
         )
 
-        return cls(secs=secs + carry_secs, nanos=nanos)
+        carry_secs = nanos // _NANOS_IN_SEC
+        secs = seconds + minutes * 60 + hours * 3_600 + days * 86_400
+
+        return cls(secs=secs + carry_secs, nanos=nanos - carry_secs * _NANOS_IN_SEC)
 
     @classmethod
     def fromtimedelta(cls, dt: datetime.timedelta) -> _Self:
@@ -292,6 +292,12 @@ class Duration:
     def __add__(
         self, other: typing.Any
     ) -> types.NotImplementedType | MonotonicTime | _Self:
+        if isinstance(other, MonotonicTime):
+            return other + self
+
+        if not isinstance(other, Duration):
+            return NotImplemented
+
         tmp = copy.deepcopy(self)
         tmp += other
 
@@ -304,18 +310,24 @@ class Duration:
     def __sub__(self, other: typing.Any) -> types.NotImplementedType | _Self: ...
 
     def __sub__(self, other: typing.Any) -> types.NotImplementedType | _Self:
+        if not isinstance(other, Duration):
+            return NotImplemented
+
         tmp = copy.deepcopy(self)
         tmp -= other
 
         return tmp
 
     @typing.overload
-    def __mul__(self, other: int) -> _Self: ...
+    def __mul__(self, other: int | float) -> _Self: ...
 
     @typing.overload
     def __mul__(self, other: typing.Any) -> types.NotImplementedType | _Self: ...
 
     def __mul__(self, other: typing.Any) -> types.NotImplementedType | _Self:
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+
         tmp = copy.deepcopy(self)
         tmp *= other
 
@@ -331,12 +343,15 @@ class Duration:
         return self * other
 
     @typing.overload
-    def __truediv__(self, other: int) -> _Self: ...
+    def __truediv__(self, other: int | float) -> _Self: ...
 
     @typing.overload
     def __truediv__(self, other: typing.Any) -> types.NotImplementedType | _Self: ...
 
     def __truediv__(self, other: typing.Any) -> types.NotImplementedType | _Self:
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+
         tmp = copy.deepcopy(self)
         tmp /= other
 
@@ -469,7 +484,7 @@ class MonotonicTime:
         """
 
         if dt.tzinfo is not None:
-            dt.astimezone(datetime.timezone.utc)
+            dt = dt.astimezone(datetime.timezone.utc)
 
         timestamp = cls.create(
             year=dt.year,
@@ -557,6 +572,9 @@ class MonotonicTime:
     def __add__(self, other: typing.Any) -> types.NotImplementedType | _Self: ...
 
     def __add__(self, other: typing.Any) -> types.NotImplementedType | _Self:
+        if not isinstance(other, Duration):
+            return NotImplemented
+
         tmp = copy.deepcopy(self)
         tmp += other
 
@@ -583,6 +601,9 @@ class MonotonicTime:
                 secs -= 1
 
             return Duration(secs, nanos)
+
+        if not isinstance(other, Duration):
+            return NotImplemented
 
         tmp = copy.deepcopy(self)
         tmp -= other

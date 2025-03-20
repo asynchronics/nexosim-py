@@ -42,7 +42,7 @@ class Simulation:
     statement, the `aclose()` method should be called after use.
 
     Note:
-        While most requests are processed concurrently, step* and process* requests are 
+        While most requests are processed concurrently, step* and process* requests are
         mutually blocking.
 
     Args:
@@ -152,7 +152,7 @@ class Simulation:
         processing that event as well as all other events scheduled for the same
         time and returns the final simulation time.
 
-        This method blocks other step* and process* requests until all newly 
+        This method blocks other step* and process* requests until all newly
         processed events have completed and returns the final simulation time.
 
         Returns:
@@ -559,7 +559,7 @@ class Simulation:
 
         request = simulation_pb2.AwaitEventRequest(sink_name=sink_name,
                                                    timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos))
-        reply = await self._stub.AwaitEvent(request)
+        reply = await self._stub.AwaitEvent(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -567,7 +567,7 @@ class Simulation:
         if event_type is object:
             return cbor2.loads(reply.event)
         else:
-            return cbor2_converter.loads(r, event_type)  # type: ignore
+            return cbor2_converter.loads(reply.event, event_type)  # type: ignore
 
     async def open_sink(self, sink_name: str) -> None:
         """Enables the reception of new events by the specified sink.
