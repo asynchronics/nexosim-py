@@ -39,6 +39,11 @@ class SimulationStub(object):
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.InitRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.InitReply.FromString,
                 _registered_method=True)
+        self.Shutdown = channel.unary_unary(
+                '/simulation.v1.Simulation/Shutdown',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownReply.FromString,
+                _registered_method=True)
         self.Halt = channel.unary_unary(
                 '/simulation.v1.Simulation/Halt',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.SerializeToString,
@@ -110,6 +115,12 @@ class SimulationServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Init(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Shutdown(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -200,6 +211,11 @@ def add_SimulationServicer_to_server(servicer, server):
                     servicer.Init,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.InitRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.InitReply.SerializeToString,
+            ),
+            'Shutdown': grpc.unary_unary_rpc_method_handler(
+                    servicer.Shutdown,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownReply.SerializeToString,
             ),
             'Halt': grpc.unary_unary_rpc_method_handler(
                     servicer.Halt,
@@ -294,6 +310,33 @@ class Simulation(object):
             '/simulation.v1.Simulation/Init',
             nexosim_dot___proto_dot_simulation__pb2.InitRequest.SerializeToString,
             nexosim_dot___proto_dot_simulation__pb2.InitReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Shutdown(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/Shutdown',
+            nexosim_dot___proto_dot_simulation__pb2.ShutdownRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.ShutdownReply.FromString,
             options,
             channel_credentials,
             insecure,

@@ -16,6 +16,13 @@ def test_reinitialize_sim_losses_state(sim):
 
     assert sim.time() == MonotonicTime(0, 0)
 
+def test_shutdown_start(sim):
+    sim.step_until(Duration(1))
+    sim.shutdown()
+    sim.start()
+
+    assert sim.time() == MonotonicTime(0, 0)
+
 def test_step_sets_time_to_scheduled_event(sim):
     sim.schedule_event(MonotonicTime(1, 0), "brew_cmd")
     sim.step()

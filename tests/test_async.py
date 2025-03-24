@@ -78,6 +78,14 @@ async def test_reinitialize_sim_losses_state(sim):
     assert await sim.time() == MonotonicTime(0, 0)
 
 @pytest.mark.asyncio
+async def test_shutdown_start(sim):
+    await sim.step_until(Duration(1))
+    await sim.shutdown()
+    await sim.start()
+
+    assert await sim.time() == MonotonicTime(0, 0)
+
+@pytest.mark.asyncio
 async def test_step_sets_time_to_scheduled_event(sim):
     await sim.schedule_event(MonotonicTime(1, 0), "brew_cmd")
     await sim.step()
