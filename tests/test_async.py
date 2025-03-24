@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from nexosim.aio import Simulation
-
+from nexosim.exceptions import SimulationNotStartedError
 from nexosim.time import Duration, MonotonicTime
 
 @pytest.mark.slow
@@ -80,7 +80,10 @@ async def test_reinitialize_sim_losses_state(sim):
 @pytest.mark.asyncio
 async def test_shutdown_start(sim):
     await sim.step_until(Duration(1))
+    assert await sim.time() == MonotonicTime(1, 0)
     await sim.shutdown()
+    with pytest.raises(SimulationNotStartedError):
+        await sim.time()
     await sim.start()
 
     assert await sim.time() == MonotonicTime(0, 0)
