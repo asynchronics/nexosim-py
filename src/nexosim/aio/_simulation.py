@@ -42,7 +42,7 @@ class Simulation:
     statement, the `aclose()` method should be called after use.
 
     Note:
-        While most requests are processed concurrently, step* and process* requests are
+        While most requests are processed concurrently, `step*` and `process*` requests are
         mutually blocking.
 
     Args:
@@ -152,7 +152,7 @@ class Simulation:
         processing that event as well as all other events scheduled for the same
         time and returns the final simulation time.
 
-        This method blocks other step* and process* requests until all newly
+        This method blocks other `step*` and `process*` requests until all newly
         processed events have completed and returns the final simulation time.
 
         Returns:
@@ -232,11 +232,11 @@ class Simulation:
         deadline, as if by calling [Simulation.step][nexosim.Simulation.step]
         repeatedly.
 
-        This method blocks other step* and process* requests until all events
-        scheduled up to the specified target time have completed.  The
-        simulation time upon completion is returned and is always equal to the
-        specified target time, whether or not an event was scheduled for that
-        time.
+        This method blocks other `step*` and `process*` requests until all events
+        scheduled up to the specified target time have completed.
+        The simulation time upon completion is returned and is always equal to
+        the specified target time, whether or not an event was scheduled
+        for that time.
 
         Args:
             deadline: The target time, specified either as an absolute time
@@ -261,7 +261,6 @@ class Simulation:
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
                 - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
-
         """
 
         kwargs = {}
@@ -407,7 +406,7 @@ class Simulation:
 
     async def process_event(self, source_name: str, event: typing.Any = None) -> None:
         """Broadcasts an event from an event source immediately, blocking
-        other step* and process* requests until completion.
+        other `step*` and `process*` requests until completion.
 
         Simulation time remains unchanged.
 
@@ -448,7 +447,7 @@ class Simulation:
         reply_type: TypeForm[T] = object,
     ) -> list[T]:
         """Broadcasts a query from a query source immediately, , blocking
-        other step* and process* requests until completion.
+        other `step*` and `process*` requests until completion.
 
         Simulation time remains unchanged.
 
