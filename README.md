@@ -1,7 +1,7 @@
 <!-- index start -->
-# NeXosimPy
+# Nexosim-py
 
-NeXosimPy is the python interface for the [NeXosim](https://github.com/asynchronics/nexosim) simulation server.
+Nexosim-py is the python interface for the [NeXosim](https://github.com/asynchronics/nexosim) simulation server.
 
 The library's features include:
 
@@ -10,12 +10,15 @@ The library's features include:
 * API for for using (de)serializing rust types,
 * asyncio support.
 
+## Compatibility
+
+The package is compatible with NeXosim versions 0.3.2 and above.
 
 ## Installation
 
 To install the package use pip:
 ```
-pip install nexosim
+pip install nexosim-py
 ```
 <!-- index end -->
 

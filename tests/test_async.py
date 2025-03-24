@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 
 from nexosim.aio import Simulation
-from nexosim.exceptions import SimulationNotStartedError
+from nexosim.exceptions import SimulationHaltedError, SimulationNotStartedError
 from nexosim.time import Duration, MonotonicTime
 
 @pytest.mark.slow
@@ -40,8 +40,6 @@ async def test_concurrent_event_and_read(rt_coffee):
         await asyncio.gather(monitor_water(), monitor_commands())
 
         assert (await simu.read_events("latest_pump_cmd")) == ["Off"]
-
-        await simu.halt()
 
 
     await simu.start(initial_volume)
@@ -170,6 +168,25 @@ async def test_step_unbounded(sim):
 
     assert await sim.read_events("flow_rate") == [4.5e-6, 0.0] * 5
 
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_step_unbounded_new_event(rt_sim):
+    await rt_sim.schedule_event(MonotonicTime(1), "brew_cmd")
+    await rt_sim.schedule_event(MonotonicTime(3), "brew_cmd")
+
+    async def run():
+        await rt_sim.step_unbounded()
+
+    async def extra_event():
+        await asyncio.sleep(2)
+        await rt_sim.schedule_event(MonotonicTime(3, 1000), "brew_cmd")
+        await rt_sim.schedule_event(MonotonicTime(3, 2000), "brew_cmd")
+
+    await asyncio.gather(run(), extra_event())
+
+    assert await rt_sim.read_events("flow_rate") == [4.5e-6, 0.0] * 2
+    assert await rt_sim.time() == MonotonicTime(3, 2000)
+
 @pytest.mark.asyncio
 async def test_close_sink(sim):
     await sim.close_sink("flow_rate")
@@ -198,3 +215,21 @@ async def test_await_event_cast(rt_sim):
         assert await rt_sim.await_event("flow_rate", Duration(2), str) == "4.5e-06"
 
     await asyncio.gather(step(), await_event())
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_halt(rt_sim):
+
+    await rt_sim.schedule_event(MonotonicTime(1), "brew_cmd")
+    await rt_sim.schedule_event(MonotonicTime(3), "brew_cmd")
+
+    async def run():
+        with pytest.raises(SimulationHaltedError):
+            await rt_sim.step_until(Duration(5))
+
+    async def halt():
+        await asyncio.sleep(2)
+        await rt_sim.halt()
+
+    await asyncio.gather(run(), halt())
+

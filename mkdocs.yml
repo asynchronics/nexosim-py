@@ -1,9 +1,10 @@
-site_name: nexosim
+site_name: Nexosim-py
 
 repo_url: https://github.com/asynchronics/nexosim-py/
+repo_name: nexosim-py
 
 nav:
-  - index.md
+  - Home: index.md
   - User Guide: user_guide.md
   - Reference:
       - "nexosim": reference/mod_root.md
