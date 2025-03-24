@@ -1,5 +1,7 @@
 import pytest
+
 from nexosim import Simulation
+from nexosim.exceptions import SimulationNotStartedError
 from nexosim.time import Duration, MonotonicTime
 
 
@@ -12,6 +14,16 @@ def sim(coffee):
 
 def test_reinitialize_sim_losses_state(sim):
     sim.step_until(Duration(1))
+    sim.start()
+
+    assert sim.time() == MonotonicTime(0, 0)
+
+def test_shutdown_start(sim):
+    sim.step_until(Duration(1))
+    assert sim.time() == MonotonicTime(1, 0)
+    sim.shutdown()
+    with pytest.raises(SimulationNotStartedError):
+        sim.time()
     sim.start()
 
     assert sim.time() == MonotonicTime(0, 0)

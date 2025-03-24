@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-std = "1.13"
 clap = { version = "4.5.30", features = ["derive"] }
-nexosim = { git = "https://github.com/asynchronics/nexosim.git", rev = "15b840f", features = ["server"] }
+nexosim = { git = "https://github.com/asynchronics/nexosim.git", rev = "02afc05", features = ["server"] }
 serde = { version = "1.0", features = ["derive"] }
+signal-hook = "0.3"
+signal-hook-async-std = "0.2"

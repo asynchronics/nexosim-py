@@ -1,4 +1,10 @@
 //! Tool for starting a nexosim server set up with a test bench.
+
+use async_std::prelude::StreamExt;
+
+use signal_hook::consts::TERM_SIGNALS;
+use signal_hook_async_std::Signals;
+
 use clap::Parser;
 use grpc_python::sims;
 use nexosim::server;
@@ -39,7 +45,7 @@ impl std::str::FromStr for Bench {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let addr = match cli.address {
@@ -53,37 +59,43 @@ fn main() {
         Some(value) => value,
     };
 
+    let mut signals = Signals::new(TERM_SIGNALS)?;
+    let signal = async move {
+        signals.next().await;
+    };
+
     if cli.http {
         match cli.bench {
             Bench::Coffee => {
                 println!("HTTP Coffee server listening at {}", addr);
-                server::run(sims::coffee_bench, addr.parse().unwrap())
+                server::run_with_shutdown(sims::coffee_bench, addr.parse()?, signal)
             }
             Bench::CoffeeRT => {
                 println!("HTTP CoffeeRT server listening at {}", addr);
-                server::run(sims::rt_coffee_bench, addr.parse().unwrap())
+                server::run_with_shutdown(sims::rt_coffee_bench, addr.parse()?, signal)
             }
             Bench::Bench2 => {
                 println!("HTTP Bench2 server listening at {}", addr);
-                server::run(sims::bench_2, addr.parse().unwrap())
+                server::run_with_shutdown(sims::bench_2, addr.parse()?, signal)
             }
-        }
-        .unwrap();
+        }?;
     } else {
         match cli.bench {
             Bench::Coffee => {
                 println!("Local Coffee server listening at {}", addr);
-                server::run_local(sims::coffee_bench, addr)
+                server::run_local_with_shutdown(sims::coffee_bench, addr, signal)
             }
             Bench::CoffeeRT => {
                 println!("Local CoffeeRT server listening at {}", addr);
-                server::run_local(sims::rt_coffee_bench, addr)
+                server::run_local_with_shutdown(sims::rt_coffee_bench, addr, signal)
             }
             Bench::Bench2 => {
                 println!("Local Bench2 server listening at {}", addr);
-                server::run_local(sims::bench_2, addr)
+                server::run_local_with_shutdown(sims::bench_2, addr, signal)
             }
-        }
-        .unwrap();
+        }?;
     }
+
+    println!("Server exited");
+    Ok(())
 }

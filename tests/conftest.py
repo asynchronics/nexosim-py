@@ -15,7 +15,7 @@ def coffee():
         try:
             yield address
         finally:
-            proc.kill()
+            proc.terminate()
 
 @pytest.fixture(scope="session")
 def rt_coffee():
@@ -28,7 +28,7 @@ def rt_coffee():
         try:
             yield address
         finally:
-            proc.kill()
+            proc.terminate()
 
 @pytest.fixture(scope="session")
 def bench_2():
@@ -41,4 +41,4 @@ def bench_2():
         try:
             yield address
         finally:
-            proc.kill()
+            proc.terminate()
