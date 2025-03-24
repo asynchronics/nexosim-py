@@ -299,13 +299,28 @@ with Simulation("0.0.0.0:41633") as sim:
     print(sim.time()) # 1970-01-01 00:00:04
 ```
 
+The [`step_unbounded()`][nexosim.Simulation.step_unbounded] method processes all of the scheduled events
+as if by calling the [`step()`][nexosim.Simulation.step] method repeatedly. This method blocks until completed.
+
+```python
+from nexosim import Simulation
+from nexosim.time import MonotonicTime
+
+with Simulation("0.0.0.0:41633") as sim:
+    sim.start()
+    sim.schedule_event(MonotonicTime(1), "input", 1)
+    sim.schedule_event(MonotonicTime(3), "input", 1)
+    sim.step_unbounded()
+    print(sim.time())  # 1970-01-01 00:00:03
+```
+
 The simulation can be stopped using the [`halt()`][nexosim.Simulation.halt] method.
 After receiving a `halt` request, the simulation will be stopped on the next attempt
 by the simulator to advance simulation time.
 
 The next attempt to advance the simulation time, including currently being processed `step_until()`
-and `step_unbounded()` requests, will raise a [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
-and terminate the simulation.
+and `step_unbounded()` requests, or to process an event or query will raise a
+[`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError] and terminate the simulation.
 
 The following is an example using the asyncio API and a simulation bench synchronized with the system clock:
 

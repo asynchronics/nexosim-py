@@ -198,13 +198,9 @@ class Simulation:
         """Iteratively advances the simulation time until the simulation end, as
         if by calling [Simulation.step][nexosim.Simulation.step] repeatedly.
 
-        For real-time clock simulation will end on calling `halt` only (`halt`
-        is effective on the next event, so bench constructor or user shall
-        ensure periodic events with appropriately small period), for non
-        real-time clock simulation will end on exhausting scheduled events or
-        calling `halt`.
+        The request blocks until all scheduled events are processed or
+        the simulation is halted.
 
-        This method blocks other step* and process* requests until completed.
         The simulation time upon completion is returned.
 
         Returns:
@@ -567,7 +563,7 @@ class Simulation:
 
         request = simulation_pb2.AwaitEventRequest(sink_name=sink_name,
                                                    timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos))
-        reply = self._stub.AwaitEvent(request)
+        reply = self._stub.AwaitEvent(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)

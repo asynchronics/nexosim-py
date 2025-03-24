@@ -186,15 +186,12 @@ class Simulation:
 
     async def step_unbounded(self) -> MonotonicTime:
         """Iteratively advances the simulation time until the simulation end, as
-        if by calling [Simulation.step][nexosim.Simulation.step] repeatedly.
+        if by calling [`step()`][nexosim.Simulation.step] repeatedly.
 
-        For real-time clock simulation will end on calling `halt` only (`halt`
-        is effective on the next event, so bench constructor or user shall
-        ensure periodic events with appropriately small period), for non
-        real-time clock simulation will end on exhausting scheduled events or
-        calling `halt`.
+        The request will complete when all scheduled events are processed or
+        the simulation is halted.
 
-        This method blocks other step* and process* requests until completed.
+        This method blocks other `step*` and `process*` requests until completed.
         The simulation time upon completion is returned.
 
         Returns:
