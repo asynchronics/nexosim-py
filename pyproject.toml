@@ -13,13 +13,19 @@ classifiers = [
 ]
 dependencies = ["attrs>=23.1.0", "cattrs>=24.1.0", "cbor2>=5.4.6", "grpcio>=1.0.0", "protobuf>=5.29.2, <6", "typing-extensions>=4.12.2"]
 
+[project.urls]
+Source = "https://github.com/asynchronics/nexosim-py"
+Issues = "https://github.com/asynchronics/nexosim-py/issues"
+Documentation = "https://nexosim-py.readthedocs.io"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-  "tests/bench/targets/",
+  "tests/bench/target/",
+  ".vscode",
 ]
 
 [tool.hatch.build.targets.wheel]
