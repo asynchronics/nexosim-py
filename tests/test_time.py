@@ -1,21 +1,31 @@
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
+
 import pytest
+
 from nexosim.time import Duration, MonotonicTime
 
 NANOS_IN_SEC = 1_000_000_000
 
-class TestDuration:
 
+class TestDuration:
     def test_nanos_too_large_value_error(self):
         with pytest.raises(ValueError):
-            Duration(0, NANOS_IN_SEC+1)
+            Duration(0, NANOS_IN_SEC + 1)
 
     def test_nanos_negative_value_error(self):
         with pytest.raises(ValueError):
             Duration(0, -1)
 
     def test_create(self):
-        d = Duration.create(days=1, hours=1, minutes=1, seconds=1, milliseconds=1000, microseconds=1_000_000, nanoseconds=1_000_000_001)
+        d = Duration.create(
+            days=1,
+            hours=1,
+            minutes=1,
+            seconds=1,
+            milliseconds=1000,
+            microseconds=1_000_000,
+            nanoseconds=1_000_000_001,
+        )
         assert d == Duration(90064, 1)
 
     def test_create_nanos(self):
@@ -28,7 +38,9 @@ class TestDuration:
         assert Duration.create(milliseconds=1001) == Duration(1, 1_000_000)
 
     def test_from_timedelta(self):
-        d = Duration.fromtimedelta(timedelta(days=1, hours=1, seconds=1, microseconds=1_000_002))
+        d = Duration.fromtimedelta(
+            timedelta(days=1, hours=1, seconds=1, microseconds=1_000_002)
+        )
         assert d == Duration(90002, 2000)
 
     def test_pos(self):
@@ -141,11 +153,11 @@ class TestDuration:
     def test_format_precision_not_spec_non_zero_nanos(self):
         assert f"{Duration(1, NANOS_IN_SEC - 1_000_000)}" == "0:00:01.999"
 
-class TestMonotonicTime:
 
+class TestMonotonicTime:
     def test_nanos_too_large_value_error(self):
         with pytest.raises(ValueError):
-            MonotonicTime(0, NANOS_IN_SEC+1)
+            MonotonicTime(0, NANOS_IN_SEC + 1)
 
     def test_create_hour_too_large_value_error(self):
         with pytest.raises(ValueError):
@@ -184,11 +196,24 @@ class TestMonotonicTime:
         assert t == MonotonicTime(3661, 1)
 
     def test_from_datetime(self):
-        t = MonotonicTime.fromdatetime(datetime(year=1970, month=1, day=2, hour=1, minute=1, second=1, microsecond=1))
+        t = MonotonicTime.fromdatetime(
+            datetime(
+                year=1970, month=1, day=2, hour=1, minute=1, second=1, microsecond=1
+            )
+        )
         assert t == MonotonicTime(90061, 1000)
 
     def test_from_datetime_with_timezone(self):
-        dt = datetime(year=1970, month=1, day=2, hour=1, minute=1, second=1, microsecond=1, tzinfo=timezone(-timedelta(hours=1)))
+        dt = datetime(
+            year=1970,
+            month=1,
+            day=2,
+            hour=1,
+            minute=1,
+            second=1,
+            microsecond=1,
+            tzinfo=timezone(-timedelta(hours=1)),
+        )
 
         assert MonotonicTime.fromdatetime(dt) == MonotonicTime(93661, 1000)
 
@@ -230,7 +255,9 @@ class TestMonotonicTime:
         assert MonotonicTime(2, 2) - MonotonicTime(1, 1) == Duration(1, 1)
 
     def test_sub_monotonic_time_carry_over(self):
-        assert MonotonicTime(2, 2) - MonotonicTime(0, 3) == Duration(1, NANOS_IN_SEC-1)
+        assert MonotonicTime(2, 2) - MonotonicTime(0, 3) == Duration(
+            1, NANOS_IN_SEC - 1
+        )
 
     def test_sub_not_implemented(self):
         with pytest.raises(TypeError):
@@ -246,4 +273,6 @@ class TestMonotonicTime:
         assert f"{MonotonicTime(1)}" == "1970-01-01 00:00:01"
 
     def test_format_precision_not_spec_non_zero_nanos(self):
-        assert f"{MonotonicTime(1, NANOS_IN_SEC - 1_000_000)}" == "1970-01-01 00:00:01.999"
+        assert (
+            f"{MonotonicTime(1, NANOS_IN_SEC - 1_000_000)}" == "1970-01-01 00:00:01.999"
+        )

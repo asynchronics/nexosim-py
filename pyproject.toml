@@ -28,11 +28,28 @@ dependencies = [
   "mkdocs-include-markdown-plugin>=6.2.0",
 ]
 
-[tool.hatch.envs.tests]
+[tool.hatch.envs.test]
 dependencies = [
   "pytest>=8.2.0",
   "pytest-asyncio>=0.25.3",
 ]
+python-sources = ["external"]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest -m \"not slow\""
+run-all = "pytest"
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.11", "3.12", "3.13"]
+
+
+[tool.hatch.envs.typecheck]
+dependencies = [
+  "pyright>=1.1.397"
+]
+
+[tool.hatch.envs.typecheck.scripts]
+run = "pyright"
 
 [tool.pyright]
 include = ["src"]
@@ -42,6 +59,14 @@ enableExperimentalFeatures = true
 [tool.ruff]
 src = ["src", "tests"]
 extend-exclude = ["src/nexosim/_proto"]
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+ignore = [
+  "B009",
+  "B010",
+  "E501",  # ruff format checks line length while ignoring docstrings
+]
 pydocstyle.convention = "google"
 
 [tool.pytest.ini_options]

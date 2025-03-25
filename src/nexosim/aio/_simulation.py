@@ -1,18 +1,16 @@
-import typing
 import inspect
+import typing
 
 import cbor2
-from grpc import aio # type: ignore
-from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
 from google.protobuf.duration_pb2 import Duration as PbDuration
+from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
+from grpc import aio  # type: ignore
 
 from .. import exceptions
 from .._config import cbor2_converter
-from ..time import MonotonicTime, Duration
-from .._proto import simulation_pb2
-from .._proto import simulation_pb2_grpc
-
+from .._proto import simulation_pb2, simulation_pb2_grpc
 from .._simulation import EventKey, _to_error
+from ..time import Duration, MonotonicTime
 
 T = typing.TypeVar("T")
 
@@ -97,7 +95,7 @@ class Simulation:
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
         """
         request = simulation_pb2.InitRequest(cfg=cbor2_converter.dumps(cfg))
-        reply = await self._stub.Init(request) # type: ignore
+        reply = await self._stub.Init(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -107,7 +105,7 @@ class Simulation:
         Shuts down a simulation bench.
         """
         request = simulation_pb2.ShutdownRequest()
-        reply = await self._stub.Shutdown(request) # type: ignore
+        reply = await self._stub.Shutdown(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -127,7 +125,7 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
         request = simulation_pb2.HaltRequest()
-        reply = await self._stub.Halt(request) # type: ignore
+        reply = await self._stub.Halt(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -147,7 +145,7 @@ class Simulation:
         """
 
         request = simulation_pb2.TimeRequest()
-        reply = await self._stub.Time(request) # type: ignore
+        reply = await self._stub.Time(request)  # type: ignore
 
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
@@ -185,7 +183,7 @@ class Simulation:
         """
 
         request = simulation_pb2.StepRequest()
-        reply = await self._stub.Step(request) # type: ignore
+        reply = await self._stub.Step(request)  # type: ignore
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -228,7 +226,7 @@ class Simulation:
         """
 
         request = simulation_pb2.StepUnboundedRequest()
-        reply = await self._stub.StepUnbounded(request) # type: ignore
+        reply = await self._stub.StepUnbounded(request)  # type: ignore
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -283,7 +281,7 @@ class Simulation:
 
         request = simulation_pb2.StepUntilRequest(**kwargs)  # type: ignore
 
-        reply = await self._stub.StepUntil(request) # type: ignore
+        reply = await self._stub.StepUntil(request)  # type: ignore
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -383,7 +381,7 @@ class Simulation:
 
         request = simulation_pb2.ScheduleEventRequest(**kwargs)  # type: ignore
 
-        reply = await self._stub.ScheduleEvent(request) # type: ignore
+        reply = await self._stub.ScheduleEvent(request)  # type: ignore
 
         if reply.HasField("key"):
             key = EventKey()
@@ -410,7 +408,7 @@ class Simulation:
         """
 
         request = simulation_pb2.CancelEventRequest(key=key._key)  # type: ignore
-        reply = await self._stub.CancelEvent(request) # type: ignore
+        reply = await self._stub.CancelEvent(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -447,7 +445,7 @@ class Simulation:
         request = simulation_pb2.ProcessEventRequest(
             source_name=source_name, event=cbor2_converter.dumps(event)
         )
-        reply = await self._stub.ProcessEvent(request) # type: ignore
+        reply = await self._stub.ProcessEvent(request)  # type: ignore
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
@@ -496,7 +494,7 @@ class Simulation:
         request = simulation_pb2.ProcessQueryRequest(
             source_name=source_name, request=cbor2_converter.dumps(request)
         )
-        reply = await self._stub.ProcessQuery(request) # type: ignore
+        reply = await self._stub.ProcessQuery(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -506,7 +504,9 @@ class Simulation:
         else:
             return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
 
-    async def read_events(self, sink_name: str, event_type: TypeForm[T] = object) -> list[T]:
+    async def read_events(
+        self, sink_name: str, event_type: TypeForm[T] = object
+    ) -> list[T]:
         """Reads all events from an event sink.
 
         Args:
@@ -531,7 +531,7 @@ class Simulation:
         """
 
         request = simulation_pb2.ReadEventsRequest(sink_name=sink_name)
-        reply = await self._stub.ReadEvents(request) # type: ignore
+        reply = await self._stub.ReadEvents(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -541,7 +541,9 @@ class Simulation:
         else:
             return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
 
-    async def await_event(self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object) -> T:
+    async def await_event(
+        self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object
+    ) -> T:
         """Waits for the next event from an event sink.
 
         The call is blocking.
@@ -567,8 +569,10 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
-        request = simulation_pb2.AwaitEventRequest(sink_name=sink_name,
-                                                   timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos))
+        request = simulation_pb2.AwaitEventRequest(
+            sink_name=sink_name,
+            timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos),
+        )
         reply = await self._stub.AwaitEvent(request)  # type: ignore
 
         if reply.HasField("error"):
@@ -597,7 +601,7 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
         request = simulation_pb2.OpenSinkRequest(sink_name=sink_name)
-        reply = await self._stub.OpenSink(request) # type: ignore
+        reply = await self._stub.OpenSink(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -621,7 +625,7 @@ class Simulation:
         """
 
         request = simulation_pb2.CloseSinkRequest(sink_name=sink_name)
-        reply = await self._stub.CloseSink(request) # type: ignore
+        reply = await self._stub.CloseSink(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)

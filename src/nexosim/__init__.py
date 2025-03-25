@@ -21,7 +21,7 @@ Example usage:
 
         # Connect to a local server listening on the 41633 port.
         with Simulation(address='localhost:41633') as sim:
-        
+
             # Initialize the simulation.
             sim.start()
 
@@ -105,6 +105,6 @@ Example usage:
         ```
 """
 
-from ._simulation import Simulation, EventKey
+from ._simulation import EventKey, Simulation
 
 __all__ = ["Simulation", "EventKey"]

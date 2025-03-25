@@ -1,17 +1,16 @@
-import typing
 import inspect
+import typing
 
 import cbor2
 import grpc  # type: ignore
-from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
 from google.protobuf.duration_pb2 import Duration as PbDuration
+from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
 
 from . import exceptions
 from ._config import cbor2_converter
-from .time import MonotonicTime, Duration
+from ._proto import simulation_pb2, simulation_pb2_grpc
 from ._proto.simulation_pb2 import EventKey as PbEventKey
-from ._proto import simulation_pb2
-from ._proto import simulation_pb2_grpc
+from .time import Duration, MonotonicTime
 
 T = typing.TypeVar("T")
 
@@ -116,7 +115,7 @@ class Simulation:
         Shuts down a simulation bench.
         """
         request = simulation_pb2.ShutdownRequest()
-        reply = self._stub.Shutdown(request) # type: ignore
+        reply = self._stub.Shutdown(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -238,7 +237,7 @@ class Simulation:
         """
 
         request = simulation_pb2.StepUnboundedRequest()
-        reply = self._stub.StepUnbounded(request) # type: ignore
+        reply = self._stub.StepUnbounded(request)  # type: ignore
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -549,7 +548,9 @@ class Simulation:
         else:
             return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
 
-    def await_event(self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object) -> T:
+    def await_event(
+        self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object
+    ) -> T:
         """Waits for the next event from an event sink.
 
         The call is blocking.
@@ -575,9 +576,11 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
-        request = simulation_pb2.AwaitEventRequest(sink_name=sink_name,
-                                                   timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos))
-        reply = self._stub.AwaitEvent(request)
+        request = simulation_pb2.AwaitEventRequest(
+            sink_name=sink_name,
+            timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos),
+        )
+        reply = self._stub.AwaitEvent(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)

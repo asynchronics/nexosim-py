@@ -86,11 +86,11 @@ from __future__ import annotations
 import copy
 import datetime
 import time
-import typing
 import types
-from typing_extensions import Self as _Self
+import typing
 
 import attrs
+from typing_extensions import Self as _Self
 
 _T = typing.TypeVar("_T")
 
@@ -170,11 +170,7 @@ class Duration:
 
             nanoseconds: A number of nanoseconds.
         """
-        nanos = (
-            nanoseconds
-            + 1_000 * microseconds
-            + 1_000_000 * milliseconds
-        )
+        nanos = nanoseconds + 1_000 * microseconds + 1_000_000 * milliseconds
 
         carry_secs = nanos // _NANOS_IN_SEC
         secs = seconds + minutes * 60 + hours * 3_600 + days * 86_400

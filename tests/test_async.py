@@ -7,6 +7,7 @@ from nexosim.aio import Simulation
 from nexosim.exceptions import SimulationNotStartedError
 from nexosim.time import Duration, MonotonicTime
 
+
 @pytest.mark.slow
 @pytest.mark.asyncio
 async def test_concurrent_event_and_read(rt_coffee):
@@ -43,7 +44,6 @@ async def test_concurrent_event_and_read(rt_coffee):
 
         await simu.halt()
 
-
     await simu.start(initial_volume)
 
     await simu.process_event("brew_time", brew_time)
@@ -55,13 +55,13 @@ async def test_concurrent_event_and_read(rt_coffee):
     assert await simu.time() == MonotonicTime(2, 0)
 
 
-
 @pytest_asyncio.fixture
 async def sim(coffee):
     """A started coffee bench simulation object."""
     async with Simulation(coffee) as sim:
         await sim.start()
         yield sim
+
 
 @pytest_asyncio.fixture
 async def rt_sim(rt_coffee):
@@ -70,12 +70,14 @@ async def rt_sim(rt_coffee):
         await sim.start()
         yield sim
 
+
 @pytest.mark.asyncio
 async def test_reinitialize_sim_losses_state(sim):
     await sim.step_until(Duration(1))
     await sim.start()
 
     assert await sim.time() == MonotonicTime(0, 0)
+
 
 @pytest.mark.asyncio
 async def test_shutdown_start(sim):
@@ -88,6 +90,7 @@ async def test_shutdown_start(sim):
 
     assert await sim.time() == MonotonicTime(0, 0)
 
+
 @pytest.mark.asyncio
 async def test_step_sets_time_to_scheduled_event(sim):
     await sim.schedule_event(MonotonicTime(1, 0), "brew_cmd")
@@ -95,11 +98,13 @@ async def test_step_sets_time_to_scheduled_event(sim):
 
     assert await sim.time() == MonotonicTime(1, 0)
 
+
 @pytest.mark.asyncio
 async def test_step_no_event_scheduled(sim):
     await sim.step()
 
     assert await sim.time() == MonotonicTime(0, 0)
+
 
 @pytest.mark.asyncio
 async def test_step_until_changes_time(sim):
@@ -107,12 +112,14 @@ async def test_step_until_changes_time(sim):
 
     assert await sim.time() == MonotonicTime(1, 0)
 
+
 @pytest.mark.asyncio
 async def test_step_until_duration(sim):
     await sim.step_until(MonotonicTime(1))
     await sim.step_until(Duration(1))
 
     assert await sim.time() == MonotonicTime(2, 0)
+
 
 @pytest.mark.asyncio
 async def test_schedule_event_relative_time(sim):
@@ -122,25 +129,34 @@ async def test_schedule_event_relative_time(sim):
 
     assert await sim.time() == MonotonicTime(2)
 
+
 @pytest.mark.asyncio
 async def test_schedule_event_period(sim):
-    await sim.schedule_event(MonotonicTime(1), "brew_time", Duration(1), period=Duration(1))
+    await sim.schedule_event(
+        MonotonicTime(1), "brew_time", Duration(1), period=Duration(1)
+    )
     for _ in range(10):
         await sim.step()
 
     assert await sim.time() == MonotonicTime(10)
 
+
 @pytest.mark.asyncio
 async def test_cancel_event(sim):
-    key = await sim.schedule_event(MonotonicTime(1), "brew_time", Duration(1), with_key=True)
+    key = await sim.schedule_event(
+        MonotonicTime(1), "brew_time", Duration(1), with_key=True
+    )
     await sim.cancel_event(key)
     await sim.step()
 
     assert await sim.time() == MonotonicTime(0)
 
+
 @pytest.mark.asyncio
 async def test_cancel_periodic_event(sim):
-    key = await sim.schedule_event(MonotonicTime(1), "brew_time", Duration(1), period=Duration(1), with_key=True)
+    key = await sim.schedule_event(
+        MonotonicTime(1), "brew_time", Duration(1), period=Duration(1), with_key=True
+    )
     await sim.step()
     await sim.step()
 
@@ -149,17 +165,20 @@ async def test_cancel_periodic_event(sim):
 
     assert await sim.time() == MonotonicTime(2)
 
+
 @pytest.mark.asyncio
 async def test_process_event(sim):
     await sim.process_event("brew_cmd")
 
     assert await sim.read_events("flow_rate") == [4.5e-6]
 
+
 @pytest.mark.asyncio
 async def test_read_event_as_str(sim):
     await sim.process_event("brew_cmd")
 
     assert await sim.read_events("flow_rate", str) == ["4.5e-06"]
+
 
 @pytest.mark.asyncio
 async def test_step_unbounded(sim):
@@ -170,6 +189,7 @@ async def test_step_unbounded(sim):
 
     assert await sim.read_events("flow_rate") == [4.5e-6, 0.0] * 5
 
+
 @pytest.mark.asyncio
 async def test_close_sink(sim):
     await sim.close_sink("flow_rate")
@@ -177,6 +197,7 @@ async def test_close_sink(sim):
     await sim.process_event("brew_cmd")
 
     assert await sim.read_events("flow_rate") == []
+
 
 @pytest.mark.asyncio
 async def test_open_sink(sim):
@@ -186,6 +207,7 @@ async def test_open_sink(sim):
     await sim.process_event("brew_cmd")
 
     assert await sim.read_events("flow_rate") == [4.5e-6]
+
 
 @pytest.mark.asyncio
 async def test_await_event_cast(rt_sim):

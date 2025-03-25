@@ -80,6 +80,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }?;
     } else {
+
+        #[cfg(unix)]
         match cli.bench {
             Bench::Coffee => {
                 println!("Local Coffee server listening at {}", addr);
@@ -94,6 +96,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 server::run_local_with_shutdown(sims::bench_2, addr, signal)
             }
         }?;
+
+        #[cfg(not(unix))]
+        return Err("Run with the --http arg on non-unix systems.")
     }
 
     println!("Server exited");

@@ -20,7 +20,7 @@ Example usage:
                     await sim.step_until(Duration(5))
                 except SimulationHaltedError:
                     time = await sim.time()
-                    print(f"Simulation halted at {time}") 
+                    print(f"Simulation halted at {time}")
                     print(await sim.read_events("output"))
 
         async def halt():
@@ -31,7 +31,7 @@ Example usage:
         async def main():
             await asyncio.gather(run(), halt())
 
-        asyncio.run(main()) 
+        asyncio.run(main())
         ```
     === "Server"
         ```rust
@@ -89,6 +89,7 @@ Example usage:
         }
         ```
 """
+
 from ._simulation import Simulation
 
 __all__ = ["Simulation"]
