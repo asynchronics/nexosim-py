@@ -102,12 +102,12 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def shutdown(self) -> None:
+    async def terminate(self) -> None:
         """
         Shuts down a simulation bench.
         """
-        request = simulation_pb2.ShutdownRequest()
-        reply = await self._stub.Shutdown(request) # type: ignore
+        request = simulation_pb2.TerminateRequest()
+        reply = await self._stub.Terminate(request) # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
