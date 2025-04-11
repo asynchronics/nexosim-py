@@ -76,10 +76,10 @@ async def test_reinitialize_sim_losses_state(sim):
     assert await sim.time() == MonotonicTime(0, 0)
 
 @pytest.mark.asyncio
-async def test_shutdown_start(sim):
+async def test_terminate_start(sim):
     await sim.step_until(Duration(1))
     assert await sim.time() == MonotonicTime(1, 0)
-    await sim.shutdown()
+    await sim.terminate()
     with pytest.raises(SimulationNotStartedError):
         await sim.time()
     await sim.start()
