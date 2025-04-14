@@ -1,4 +1,4 @@
-site_name: Nexosim-py
+site_name: NeXosim-py
 
 repo_url: https://github.com/asynchronics/nexosim-py/
 repo_name: nexosim-py
@@ -15,6 +15,11 @@ nav:
 
 theme:
   name: "material"
+  palette:
+    primary: custom
+    accent: custom
+    scheme: slate
+  logo: assets/asynchronics.svg
   features:
     - navigation.tabs
     - navigation.tabs.sticky
@@ -23,6 +28,12 @@ theme:
     - content.code.copy
     - search.suggest
     - search.highlight
+
+extra:
+  generator: false
+
+extra_css:
+  - stylesheets/asynchronics.css
 
 plugins:
   - autorefs

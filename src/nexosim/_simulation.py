@@ -79,7 +79,7 @@ class Simulation:
         self.close()
 
     def close(self) -> None:
-        """Closes the grpc channel."""
+        """Closes the gRPC channel."""
         self._channel.close()
 
     def start(self, cfg: typing.Any = None) -> None:
@@ -113,10 +113,10 @@ class Simulation:
 
     def terminate(self) -> None:
         """
-        Shuts down a simulation bench.
+        Terminates a simulation.
         """
         request = simulation_pb2.TerminateRequest()
-        reply = self._stub.Terminate(request) # type: ignore
+        reply = self._stub.Terminate(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -234,7 +234,7 @@ class Simulation:
         """
 
         request = simulation_pb2.StepUnboundedRequest()
-        reply = self._stub.StepUnbounded(request) # type: ignore
+        reply = self._stub.StepUnbounded(request)  # type: ignore
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -545,7 +545,9 @@ class Simulation:
         else:
             return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
 
-    def await_event(self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object) -> T:
+    def await_event(
+        self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object
+    ) -> T:
         """Waits for the next event from an event sink.
 
         The call is blocking.
@@ -571,8 +573,10 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
-        request = simulation_pb2.AwaitEventRequest(sink_name=sink_name,
-                                                   timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos))
+        request = simulation_pb2.AwaitEventRequest(
+            sink_name=sink_name,
+            timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos),
+        )
         reply = self._stub.AwaitEvent(request)  # type: ignore
 
         if reply.HasField("error"):

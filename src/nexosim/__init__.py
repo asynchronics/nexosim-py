@@ -3,9 +3,7 @@
 This module defines the `Simulation` type, which acts as a front-end to a
 NeXosim gRPC simulation server.
 
-
-
-Example usage:
+!!! example "Example usage"
     === "Client"
         ```py
         from dataclasses import dataclass
@@ -21,7 +19,7 @@ Example usage:
 
         # Connect to a local server listening on the 41633 port.
         with Simulation(address='localhost:41633') as sim:
-        
+
             # Initialize the simulation.
             sim.start()
 

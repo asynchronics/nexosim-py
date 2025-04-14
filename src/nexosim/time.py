@@ -26,7 +26,7 @@ are supported. The `Duration` type also supports multiplication and division by
 a scalar.
 
 
-Example usage:
+!!! example "Example usage"
     Basic usage:
 
     ```py
@@ -170,11 +170,7 @@ class Duration:
 
             nanoseconds: A number of nanoseconds.
         """
-        nanos = (
-            nanoseconds
-            + 1_000 * microseconds
-            + 1_000_000 * milliseconds
-        )
+        nanos = nanoseconds + 1_000 * microseconds + 1_000_000 * milliseconds
 
         carry_secs = nanos // _NANOS_IN_SEC
         secs = seconds + minutes * 60 + hours * 3_600 + days * 86_400
