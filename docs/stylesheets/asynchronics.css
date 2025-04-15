@@ -1,0 +1,54 @@
+:root>* {
+    --md-primary-fg-color: #4bc1c7;
+    --md-primary-fg-color--light: #9ad6dc;
+    --md-primary-fg-color--dark: #27989d;
+    --md-accent-fg-color: #e6b82a;
+    --md-accent-fg-color--transparent: rgb(230, 184, 42, 0.1);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+    border-width: 0;
+    border-left-width: 4px;
+}
+
+[dir=ltr] .md-typeset .admonition-title,
+[dir=ltr] .md-typeset summary {
+    border-top-left-radius: 0;
+}
+
+.md-typeset .note>.admonition-title,
+.md-typeset .note>summary,
+.md-typeset .example>.admonition-title,
+.md-typeset .example>summary {
+    background-color: var(--md-admonition-bg-color);
+}
+
+.md-typeset .admonition.note,
+.md-typeset details.note,
+.md-typeset .admonition.example,
+.md-typeset details.example {
+    border-color: #27989d;
+}
+
+.md-typeset .note>.admonition-title:before,
+.md-typeset .note>summary:before,
+.md-typeset .example>.admonition-title:before,
+.md-typeset .example>summary:before {
+    background-color: #27989d;
+}
+
+.md-typeset .warning>.admonition-title,
+.md-typeset .warning>summary {
+    background-color: var(--md-admonition-bg-color);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+    border-color: #e6b82a;
+}
+
+.md-typeset .warning>.admonition-title:before,
+.md-typeset .warning>summary:before {
+    background-color: #e6b82a;
+}

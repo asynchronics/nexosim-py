@@ -1,22 +1,22 @@
 <!-- index start -->
-# Nexosim-py
+# NeXosim-py
 
-Nexosim-py is the python interface for the [NeXosim](https://github.com/asynchronics/nexosim) simulation server.
+NeXosim-py is a python interface for the [NeXosim](https://github.com/asynchronics/nexosim) simulation server.
 
-The library's features include:
+The library provides:
 
-* an interface for controlling and monitoring simulations,
-* communication with the server over HTTP or unix domain sockets,
-* API for for using (de)serializing rust types,
-* asyncio support.
+* an interface to control and monitor simulations over HTTP/2 or unix
+  domain sockets,
+* an API for the (de)serialization of Rust types,
+* `asyncio` support.
 
 ## Compatibility
 
-The package is compatible with NeXosim versions 0.3.2 and above.
+The package is compatible with NeXosim 0.3.2 and later 0.3.x versions.
 
 ## Installation
 
-To install the package use pip:
+To install the package, use pip:
 ```
 pip install nexosim-py
 ```
@@ -35,20 +35,20 @@ use nexosim::time::MonotonicTime;
 use nexosim::server;
 
 #[derive(Default)]
-pub(crate) struct MyModel {
+pub(crate) struct AddOne {
     pub(crate) output: Output<u16>
 }
 
-impl MyModel {
-    pub async fn my_input(&mut self, value: u16) {
-        self.output.send(value).await;
+impl AddOne {
+    pub async fn input(&mut self, value: u16) {
+        self.output.send(value + 1).await;
     }
 }
 
-impl Model for MyModel {}
+impl Model for AddOne {}
 
 fn bench(_cfg: ()) -> Result<(Simulation, EndpointRegistry), SimulationError> {
-    let mut model = MyModel::default();
+    let mut model = AddOne::default();
 
     let model_mbox = Mailbox::new();
     let model_addr = model_mbox.address();
@@ -57,14 +57,14 @@ fn bench(_cfg: ()) -> Result<(Simulation, EndpointRegistry), SimulationError> {
 
     let output = EventBuffer::new();
     model.output.connect_sink(&output);
-    registry.add_event_sink(output, "output").unwrap();
+    registry.add_event_sink(output, "add_1_output").unwrap();
 
     let mut input = EventSource::new();
-    input.connect(MyModel::my_input, &model_addr);
-    registry.add_event_source(input, "input").unwrap();
+    input.connect(AddOne::input, &model_addr);
+    registry.add_event_source(input, "add_1_input").unwrap();
 
     let sim = SimInit::new()
-        .add_model(model, model_mbox, "model")
+        .add_model(model, model_mbox, "Adder")
         .init(MonotonicTime::EPOCH)?
         .0;
 
@@ -86,12 +86,11 @@ from nexosim import Simulation
 
 with Simulation("0.0.0.0:41633") as sim:
     sim.start()
-    sim.process_event("input", 5)
+    sim.process_event("add_1_input", 5)
 
-    print(sim.read_events("output"))
+    print(sim.read_events("add_1_output"))
 
 # Prints out:
-# [5]
-
+# [6]
 ```
 <!-- example client end -->

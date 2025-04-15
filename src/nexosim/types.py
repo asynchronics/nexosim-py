@@ -377,6 +377,7 @@ def tupleclass(cls: typing.Type[_T]) -> typing.Type[_T]:
     # dataclass.
     arity = len(dataclasses.fields(cls))  # type: ignore
     if arity == 1:
+
         def structure_hook(d, t):
             (ty,) = typing.get_args(t.__orig_bases__[0])  # type: ignore
 
@@ -384,6 +385,7 @@ def tupleclass(cls: typing.Type[_T]) -> typing.Type[_T]:
 
         _cbor2_converter.register_structure_hook(cls, structure_hook)
     elif arity > 1:
+
         def structure_hook(d, t):
             ty_list = typing.get_args(t.__orig_bases__[0])
             args = [_cbor2_converter.structure(di, ty) for di, ty in zip(d, ty_list)]
@@ -744,24 +746,36 @@ class TupleType16Arg(
 
 @typing.overload
 def tuple_type() -> type[TupleType0Arg]: ...
+
+
 @typing.overload
 def tuple_type(_0: type[_Arg0]) -> type[TupleType1Arg[_Arg0]]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1]
 ) -> type[TupleType2Arg[_Arg0, _Arg1]]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2]
 ) -> TupleType3Arg[_Arg0, _Arg1, _Arg2]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3]
 ) -> TupleType4Arg[_Arg0, _Arg1, _Arg2, _Arg3]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3], _4: type[_Arg4]
 ) -> TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -771,6 +785,8 @@ def tuple_type(
     _4: type[_Arg4],
     _5: type[_Arg5],
 ) -> TupleType6Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -781,6 +797,8 @@ def tuple_type(
     _5: type[_Arg5],
     _6: type[_Arg6],
 ) -> TupleType7Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -792,6 +810,8 @@ def tuple_type(
     _6: type[_Arg6],
     _7: type[_Arg7],
 ) -> TupleType8Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -804,6 +824,8 @@ def tuple_type(
     _7: type[_Arg7],
     _8: type[_Arg8],
 ) -> TupleType9Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -819,6 +841,8 @@ def tuple_type(
 ) -> TupleType10Arg[
     _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9
 ]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -835,6 +859,8 @@ def tuple_type(
 ) -> TupleType11Arg[
     _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
 ]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -852,6 +878,8 @@ def tuple_type(
 ) -> TupleType12Arg[
     _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10, _Arg11
 ]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -882,6 +910,8 @@ def tuple_type(
     _Arg11,
     _Arg12,
 ]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -914,6 +944,8 @@ def tuple_type(
     _Arg12,
     _Arg13,
 ]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],
@@ -948,6 +980,8 @@ def tuple_type(
     _Arg13,
     _Arg14,
 ]: ...
+
+
 @typing.overload
 def tuple_type(
     _0: type[_Arg0],

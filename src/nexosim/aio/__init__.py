@@ -1,8 +1,9 @@
 """Asyncio version of the simulation API.
 
-This module defines the asynchronous version of [`Simulation`][nexosim.Simulation] class.
+This module defines an asynchronous version of the
+[`Simulation`][nexosim.Simulation] class.
 
-Example usage:
+!!! example "Example usage"
     === "Client"
         ```py
         import asyncio
@@ -20,7 +21,7 @@ Example usage:
                     await sim.step_until(Duration(5))
                 except SimulationHaltedError:
                     time = await sim.time()
-                    print(f"Simulation halted at {time}") 
+                    print(f"Simulation halted at {time}")
                     print(await sim.read_events("output"))
 
         async def halt():
@@ -31,7 +32,7 @@ Example usage:
         async def main():
             await asyncio.gather(run(), halt())
 
-        asyncio.run(main()) 
+        asyncio.run(main())
         ```
     === "Server"
         ```rust
@@ -89,6 +90,7 @@ Example usage:
         }
         ```
 """
+
 from ._simulation import Simulation
 
 __all__ = ["Simulation"]
