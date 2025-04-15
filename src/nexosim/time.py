@@ -26,7 +26,7 @@ are supported. The `Duration` type also supports multiplication and division by
 a scalar.
 
 
-Example usage:
+!!! example "Example usage"
     Basic usage:
 
     ```py

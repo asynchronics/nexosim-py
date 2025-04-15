@@ -1,8 +1,9 @@
 """Asyncio version of the simulation API.
 
-This module defines the asynchronous version of [`Simulation`][nexosim.Simulation] class.
+This module defines an asynchronous version of the
+[`Simulation`][nexosim.Simulation] class.
 
-Example usage:
+!!! example "Example usage"
     === "Client"
         ```py
         import asyncio

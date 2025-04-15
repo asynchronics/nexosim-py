@@ -34,12 +34,12 @@ Here's a minimal example with a simple server implementation:
 
     ---
     The user guide contains information on general usage of the interface.
-    If you're new to NeXosimPy, we recommend you start here.
+    If you are new to NeXosim-py, we recommend you start here.
 
 -   [:material-code-brackets:{ .lg .middle } **API Reference**](reference/mod_root.md)
 
     ---
 
-    A detailed description of the NeXosimPy API can be found here.
+    A detailed description of the NeXosim-py API can be found here.
 
 </div>

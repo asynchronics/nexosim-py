@@ -86,11 +86,11 @@ class InitReply(_message.Message):
     error: Error
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class ShutdownRequest(_message.Message):
+class TerminateRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
-class ShutdownReply(_message.Message):
+class TerminateReply(_message.Message):
     __slots__ = ("empty", "error")
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
@@ -297,7 +297,7 @@ class CloseSinkReply(_message.Message):
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class AnyRequest(_message.Message):
-    __slots__ = ("init_request", "halt_request", "time_request", "step_request", "step_until_request", "schedule_event_request", "cancel_event_request", "process_event_request", "process_query_request", "read_events_request", "open_sink_request", "close_sink_request", "await_event_request", "step_unbounded_request", "shutdown_request")
+    __slots__ = ("init_request", "halt_request", "time_request", "step_request", "step_until_request", "schedule_event_request", "cancel_event_request", "process_event_request", "process_query_request", "read_events_request", "open_sink_request", "close_sink_request", "await_event_request", "step_unbounded_request", "terminate_request")
     INIT_REQUEST_FIELD_NUMBER: _ClassVar[int]
     HALT_REQUEST_FIELD_NUMBER: _ClassVar[int]
     TIME_REQUEST_FIELD_NUMBER: _ClassVar[int]
@@ -312,7 +312,7 @@ class AnyRequest(_message.Message):
     CLOSE_SINK_REQUEST_FIELD_NUMBER: _ClassVar[int]
     AWAIT_EVENT_REQUEST_FIELD_NUMBER: _ClassVar[int]
     STEP_UNBOUNDED_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    SHUTDOWN_REQUEST_FIELD_NUMBER: _ClassVar[int]
+    TERMINATE_REQUEST_FIELD_NUMBER: _ClassVar[int]
     init_request: InitRequest
     halt_request: HaltRequest
     time_request: TimeRequest
@@ -327,5 +327,5 @@ class AnyRequest(_message.Message):
     close_sink_request: CloseSinkRequest
     await_event_request: AwaitEventRequest
     step_unbounded_request: StepUnboundedRequest
-    shutdown_request: ShutdownRequest
-    def __init__(self, init_request: _Optional[_Union[InitRequest, _Mapping]] = ..., halt_request: _Optional[_Union[HaltRequest, _Mapping]] = ..., time_request: _Optional[_Union[TimeRequest, _Mapping]] = ..., step_request: _Optional[_Union[StepRequest, _Mapping]] = ..., step_until_request: _Optional[_Union[StepUntilRequest, _Mapping]] = ..., schedule_event_request: _Optional[_Union[ScheduleEventRequest, _Mapping]] = ..., cancel_event_request: _Optional[_Union[CancelEventRequest, _Mapping]] = ..., process_event_request: _Optional[_Union[ProcessEventRequest, _Mapping]] = ..., process_query_request: _Optional[_Union[ProcessQueryRequest, _Mapping]] = ..., read_events_request: _Optional[_Union[ReadEventsRequest, _Mapping]] = ..., open_sink_request: _Optional[_Union[OpenSinkRequest, _Mapping]] = ..., close_sink_request: _Optional[_Union[CloseSinkRequest, _Mapping]] = ..., await_event_request: _Optional[_Union[AwaitEventRequest, _Mapping]] = ..., step_unbounded_request: _Optional[_Union[StepUnboundedRequest, _Mapping]] = ..., shutdown_request: _Optional[_Union[ShutdownRequest, _Mapping]] = ...) -> None: ...
+    terminate_request: TerminateRequest
+    def __init__(self, init_request: _Optional[_Union[InitRequest, _Mapping]] = ..., halt_request: _Optional[_Union[HaltRequest, _Mapping]] = ..., time_request: _Optional[_Union[TimeRequest, _Mapping]] = ..., step_request: _Optional[_Union[StepRequest, _Mapping]] = ..., step_until_request: _Optional[_Union[StepUntilRequest, _Mapping]] = ..., schedule_event_request: _Optional[_Union[ScheduleEventRequest, _Mapping]] = ..., cancel_event_request: _Optional[_Union[CancelEventRequest, _Mapping]] = ..., process_event_request: _Optional[_Union[ProcessEventRequest, _Mapping]] = ..., process_query_request: _Optional[_Union[ProcessQueryRequest, _Mapping]] = ..., read_events_request: _Optional[_Union[ReadEventsRequest, _Mapping]] = ..., open_sink_request: _Optional[_Union[OpenSinkRequest, _Mapping]] = ..., close_sink_request: _Optional[_Union[CloseSinkRequest, _Mapping]] = ..., await_event_request: _Optional[_Union[AwaitEventRequest, _Mapping]] = ..., step_unbounded_request: _Optional[_Union[StepUnboundedRequest, _Mapping]] = ..., terminate_request: _Optional[_Union[TerminateRequest, _Mapping]] = ...) -> None: ...

@@ -1,9 +1,10 @@
-site_name: nexosim
+site_name: NeXosim-py
 
 repo_url: https://github.com/asynchronics/nexosim-py/
+repo_name: nexosim-py
 
 nav:
-  - index.md
+  - Home: index.md
   - User Guide: user_guide.md
   - Reference:
       - "nexosim": reference/mod_root.md
@@ -14,6 +15,7 @@ nav:
 
 theme:
   name: "material"
+  logo: assets/asynchronics.svg
   features:
     - navigation.tabs
     - navigation.tabs.sticky
@@ -31,17 +33,27 @@ theme:
 
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
 
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
 
 
+
+extra:
+  generator: false
+
+extra_css:
+  - stylesheets/asynchronics.css
 
 plugins:
   - autorefs

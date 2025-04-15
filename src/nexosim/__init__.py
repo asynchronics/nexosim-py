@@ -3,9 +3,7 @@
 This module defines the `Simulation` type, which acts as a front-end to a
 NeXosim gRPC simulation server.
 
-
-
-Example usage:
+!!! example "Example usage"
     === "Client"
         ```py
         from dataclasses import dataclass

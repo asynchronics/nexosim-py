@@ -78,7 +78,7 @@ class Simulation:
         self.close()
 
     def close(self) -> None:
-        """Closes the grpc channel."""
+        """Closes the gRPC channel."""
         self._channel.close()
 
     def start(self, cfg: typing.Any = None) -> None:
@@ -110,12 +110,12 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    def shutdown(self) -> None:
+    def terminate(self) -> None:
         """
-        Shuts down a simulation bench.
+        Terminates a simulation.
         """
-        request = simulation_pb2.ShutdownRequest()
-        reply = self._stub.Shutdown(request)  # type: ignore
+        request = simulation_pb2.TerminateRequest()
+        reply = self._stub.Terminate(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -207,13 +207,9 @@ class Simulation:
         """Iteratively advances the simulation time until the simulation end, as
         if by calling [Simulation.step][nexosim.Simulation.step] repeatedly.
 
-        For real-time clock simulation will end on calling `halt` only (`halt`
-        is effective on the next event, so bench constructor or user shall
-        ensure periodic events with appropriately small period), for non
-        real-time clock simulation will end on exhausting scheduled events or
-        calling `halt`.
+        The request blocks until all scheduled events are processed or
+        the simulation is halted.
 
-        This method blocks other step* and process* requests until completed.
         The simulation time upon completion is returned.
 
         Returns:

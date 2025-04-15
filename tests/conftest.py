@@ -53,9 +53,7 @@ def types_bench():
         shlex.split("cargo build --manifest-path tests/bench/Cargo.toml"), check=True
     )
     with subprocess.Popen(
-        shlex.split(
-            f"./tests/bench/target/debug/grpc-python types -a {address} --http"
-        )
+        shlex.split(f"./tests/bench/target/debug/grpc-python types -a {address} --http")
     ) as proc:
         # wait for startup
         time.sleep(1)
