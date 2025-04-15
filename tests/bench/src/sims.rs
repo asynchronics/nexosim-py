@@ -3,8 +3,8 @@ use nexosim::registry::EndpointRegistry;
 use nexosim::simulation::{Mailbox, SimInit, Simulation, SimulationError};
 use nexosim::time::{AutoSystemClock, MonotonicTime};
 
-use crate::bench_2;
 use crate::coffee;
+use crate::complex_types;
 
 /// Create the bench assembly.
 pub fn coffee_bench(
@@ -138,8 +138,10 @@ pub fn rt_coffee_bench(
     Ok((sim, registry))
 }
 
-pub fn bench_2(_cfg: bench_2::TestLoad) -> Result<(Simulation, EndpointRegistry), SimulationError> {
-    let mut model = bench_2::MyModel::default();
+pub fn types_bench(
+    _cfg: complex_types::TestLoad,
+) -> Result<(Simulation, EndpointRegistry), SimulationError> {
+    let mut model = complex_types::MyModel::default();
 
     // Mailboxes.
     let model_mbox = Mailbox::new();
@@ -155,7 +157,7 @@ pub fn bench_2(_cfg: bench_2::TestLoad) -> Result<(Simulation, EndpointRegistry)
         .unwrap();
 
     let mut input = EventSource::new();
-    input.connect(bench_2::MyModel::my_input, &model_addr);
+    input.connect(complex_types::MyModel::my_input, &model_addr);
     registry.add_event_source(input, "input").unwrap();
 
     // Assembly and initialization.

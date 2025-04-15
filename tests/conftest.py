@@ -46,7 +46,7 @@ def rt_coffee():
 
 
 @pytest.fixture(scope="session")
-def bench_2():
+def types_bench():
     """Spawn a simulation server set up with bench2."""
     address = "0.0.0.0:41637"
     subprocess.run(
@@ -54,7 +54,7 @@ def bench_2():
     )
     with subprocess.Popen(
         shlex.split(
-            f"./tests/bench/target/debug/grpc-python bench2 -a {address} --http"
+            f"./tests/bench/target/debug/grpc-python types -a {address} --http"
         )
     ) as proc:
         # wait for startup

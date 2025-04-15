@@ -65,7 +65,9 @@ select = ["E", "F", "B", "I"]
 ignore = [
   "B009",
   "B010",
-  "E501",  # ruff format checks line length while ignoring docstrings
+  # line length lint is disabled because ruff format checks
+  # line length while ignoring docstrings
+  "E501",
 ]
 pydocstyle.convention = "google"
 
