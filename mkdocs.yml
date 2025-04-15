@@ -15,10 +15,6 @@ nav:
 
 theme:
   name: "material"
-  palette:
-    primary: custom
-    accent: custom
-    scheme: slate
   logo: assets/asynchronics.svg
   features:
     - navigation.tabs
@@ -28,6 +24,30 @@ theme:
     - content.code.copy
     - search.suggest
     - search.highlight
+  favicon: images/favicon-16x16.png
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+
 
 extra:
   generator: false

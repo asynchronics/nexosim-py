@@ -211,6 +211,7 @@ def my_enum_discriminant(my_enum: MyEnum.type) -> int:
 import dataclasses
 import inspect
 import typing
+
 import typing_extensions
 
 from ._config import cbor2_converter as _cbor2_converter
@@ -260,8 +261,8 @@ def enumclass(cls: type[_T]) -> type[_T]:
     ty_iter = iter(variants.values())
     try:
         ty = next(ty_iter)
-    except StopIteration:
-        raise ValueError("enums must contain at least one variant")
+    except StopIteration as err:
+        raise ValueError("enums must contain at least one variant") from err
 
     for t in ty_iter:
         ty = typing.Union[t, ty]  # type: ignore
@@ -280,10 +281,10 @@ def enumclass(cls: type[_T]) -> type[_T]:
             try:
                 (ty_name,) = d  # type: ignore
                 (ty_unstruct,) = d.values()  # type: ignore
-            except ValueError:
+            except ValueError as err:
                 raise ValueError(
                     "enum structuring expects a string or a single-entry dictionary"
-                )
+                ) from err
         else:
             if not isinstance(d, str):
                 raise ValueError(
@@ -295,10 +296,10 @@ def enumclass(cls: type[_T]) -> type[_T]:
 
         try:
             ty = variants[ty_name]
-        except KeyError:
+        except KeyError as err:
             raise ValueError(
                 "could not match unstructured data to a valid enum variant"
-            )
+            ) from err
 
         return _cbor2_converter.structure(ty_unstruct, ty)
 
@@ -333,8 +334,10 @@ def _tuple_unstructure_hook(e: typing.Any) -> typing.Any:  # type: ignore
 
         return e_instruct
 
-    except TypeError:
-        raise ValueError("tuple-like types must expose a dataclass-like interface")
+    except TypeError as err:
+        raise ValueError(
+            "tuple-like types must expose a dataclass-like interface"
+        ) from err
 
 
 def _struct_unstructure_hook(e: typing.Any) -> typing.Any:  # type: ignore
@@ -343,8 +346,8 @@ def _struct_unstructure_hook(e: typing.Any) -> typing.Any:  # type: ignore
             field.name: _cbor2_converter.unstructure(getattr(e, field.name))
             for field in dataclasses.fields(e)
         }
-    except TypeError:
-        raise ValueError("struct types must expose a dataclass-like interface")
+    except TypeError as err:
+        raise ValueError("struct types must expose a dataclass-like interface") from err
 
 
 @typing_extensions.dataclass_transform()
@@ -388,7 +391,10 @@ def tupleclass(cls: typing.Type[_T]) -> typing.Type[_T]:
 
         def structure_hook(d, t):
             ty_list = typing.get_args(t.__orig_bases__[0])
-            args = [_cbor2_converter.structure(di, ty) for di, ty in zip(d, ty_list)]
+            args = [
+                _cbor2_converter.structure(di, ty)
+                for di, ty in zip(d, ty_list, strict=True)
+            ]
 
             return t(*args)
 

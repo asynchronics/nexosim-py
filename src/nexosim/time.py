@@ -86,11 +86,11 @@ from __future__ import annotations
 import copy
 import datetime
 import time
-import typing
 import types
-from typing_extensions import Self as _Self
+import typing
 
 import attrs
+from typing_extensions import Self as _Self
 
 _T = typing.TypeVar("_T")
 

@@ -1,35 +1,46 @@
 import dataclasses
+
 import pytest
-from nexosim.types import tuple_type, UnitType, enumclass
+
 from nexosim._config import cbor2_converter
+from nexosim.types import UnitType, enumclass, tuple_type
+
 
 @pytest.fixture
 def tuple_type_0_arg():
     """A zero-arg tuple type class."""
+
     class MyTupleType(tuple_type()): ...
 
     return MyTupleType
 
+
 @pytest.fixture
 def tuple_type_1_arg():
     """A TupleType[float] class."""
+
     class MyTupleType(tuple_type(float)): ...
 
     return MyTupleType
 
+
 @pytest.fixture
 def tuple_type_2_arg():
     """A TupleType[float, str] class."""
+
     class MyTupleType(tuple_type(float, str)): ...
 
     return MyTupleType
 
+
 @pytest.fixture
 def unit_type():
     """A unit type class."""
+
     class MyUnitType(UnitType): ...
 
     return MyUnitType
+
 
 @pytest.fixture
 def struct_type():
@@ -42,9 +53,11 @@ def struct_type():
 
     return MyStructType
 
-@pytest.fixture
-def enum_type(unit_type, tuple_type_0_arg, tuple_type_1_arg, tuple_type_2_arg, struct_type):
 
+@pytest.fixture
+def enum_type(
+    unit_type, tuple_type_0_arg, tuple_type_1_arg, tuple_type_2_arg, struct_type
+):
     @enumclass
     class MyEnumType:
         MyUnitVariant = unit_type
@@ -55,16 +68,18 @@ def enum_type(unit_type, tuple_type_0_arg, tuple_type_1_arg, tuple_type_2_arg, s
 
     return MyEnumType
 
+
 @pytest.fixture
 def empty_class():
     """A class without any members."""
+
     class A: ...
+
     return A
 
+
 class TestUnitType:
-
     def test_repr(self, unit_type):
-
         assert repr(unit_type()).endswith("MyUnitType")
 
     def test_structure_hook(self, unit_type):
@@ -77,8 +92,8 @@ class TestUnitType:
 
         assert f(unit_type()) is None
 
-class TestTupleType:
 
+class TestTupleType:
     def test_structure_hook_0_arg(self, tuple_type_0_arg):
         f = cbor2_converter.get_structure_hook(tuple_type_0_arg)
 
@@ -118,8 +133,8 @@ class TestTupleType:
     def test_repr_2_arg(self, tuple_type_2_arg):
         assert repr(tuple_type_2_arg(0.0, "s")).endswith("MyTupleType(0.0, 's')")
 
-class TestEnumType:
 
+class TestEnumType:
     def test_unstructure_unit_variant(self, enum_type):
         cls = enum_type.MyUnitVariant
         f = cbor2_converter.get_unstructure_hook(cls)
@@ -178,7 +193,9 @@ class TestEnumType:
         cls = enum_type.MyStructVariant
         f = cbor2_converter.get_structure_hook(enum_type.type)
 
-        assert f({"MyStructVariant": {"foo": 1, "bar": "s"}}, enum_type.type) == cls(1, "s")
+        assert f({"MyStructVariant": {"foo": 1, "bar": "s"}}, enum_type.type) == cls(
+            1, "s"
+        )
 
     def test_structure_multi_key_dict_value_error(self, enum_type):
         f = cbor2_converter.get_structure_hook(enum_type.type)
@@ -199,8 +216,8 @@ class TestEnumType:
             f("MyUnknownVariant", enum_type.type)
 
     def test_explicit_type_mismatch_raises_error(self, unit_type, tuple_type_1_arg):
-
         with pytest.raises(TypeError):
+
             @enumclass
             class _:
                 MyUnitVariant = unit_type
@@ -210,7 +227,6 @@ class TestEnumType:
 
     def test_zero_variant_enum_type_value_error(self):
         with pytest.raises(ValueError):
+
             @enumclass
             class _: ...
-
-

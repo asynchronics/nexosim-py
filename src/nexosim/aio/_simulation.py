@@ -1,18 +1,16 @@
-import typing
 import inspect
+import typing
 
 import cbor2
-from grpc import aio  # type: ignore
-from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
 from google.protobuf.duration_pb2 import Duration as PbDuration
+from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
+from grpc import aio  # type: ignore
 
 from .. import exceptions
 from .._config import cbor2_converter
-from ..time import MonotonicTime, Duration
-from .._proto import simulation_pb2
-from .._proto import simulation_pb2_grpc
-
+from .._proto import simulation_pb2, simulation_pb2_grpc
 from .._simulation import EventKey, _to_error
+from ..time import Duration, MonotonicTime
 
 T = typing.TypeVar("T")
 

@@ -13,9 +13,6 @@ pub enum TestLoad {
     VarG { x: i32, y: TestSubLoad },
 }
 
-//#[derive(Clone, Serialize, Deserialize)]
-//pub struct TestLoad {}
-
 #[derive(Clone, Serialize, Deserialize)]
 pub enum TestSubLoad {
     VarA,

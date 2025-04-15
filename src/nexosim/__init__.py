@@ -103,6 +103,6 @@ NeXosim gRPC simulation server.
         ```
 """
 
-from ._simulation import Simulation, EventKey
+from ._simulation import EventKey, Simulation
 
 __all__ = ["Simulation", "EventKey"]

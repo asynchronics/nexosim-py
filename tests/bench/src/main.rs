@@ -28,8 +28,8 @@ struct Cli {
 #[derive(Debug, Clone, Copy)]
 enum Bench {
     Coffee,
-    CoffeeRT,
-    Bench2,
+    CoffeeRt,
+    Types,
 }
 
 impl std::str::FromStr for Bench {
@@ -38,8 +38,8 @@ impl std::str::FromStr for Bench {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "coffee" => Ok(Self::Coffee),
-            "coffeert" => Ok(Self::CoffeeRT),
-            "bench2" => Ok(Self::Bench2),
+            "coffeert" => Ok(Self::CoffeeRt),
+            "types" => Ok(Self::Types),
             _ => Err(format!("{s} bench not recognized.")),
         }
     }
@@ -70,30 +70,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("HTTP Coffee server listening at {}", addr);
                 server::run_with_shutdown(sims::coffee_bench, addr.parse()?, signal)
             }
-            Bench::CoffeeRT => {
+            Bench::CoffeeRt => {
                 println!("HTTP CoffeeRT server listening at {}", addr);
                 server::run_with_shutdown(sims::rt_coffee_bench, addr.parse()?, signal)
             }
-            Bench::Bench2 => {
+            Bench::Types => {
                 println!("HTTP Bench2 server listening at {}", addr);
-                server::run_with_shutdown(sims::bench_2, addr.parse()?, signal)
+                server::run_with_shutdown(sims::types_bench, addr.parse()?, signal)
             }
         }?;
     } else {
+        #[cfg(unix)]
         match cli.bench {
             Bench::Coffee => {
                 println!("Local Coffee server listening at {}", addr);
                 server::run_local_with_shutdown(sims::coffee_bench, addr, signal)
             }
-            Bench::CoffeeRT => {
+            Bench::CoffeeRt => {
                 println!("Local CoffeeRT server listening at {}", addr);
                 server::run_local_with_shutdown(sims::rt_coffee_bench, addr, signal)
             }
-            Bench::Bench2 => {
+            Bench::Types => {
                 println!("Local Bench2 server listening at {}", addr);
-                server::run_local_with_shutdown(sims::bench_2, addr, signal)
+                server::run_local_with_shutdown(sims::types_bench, addr, signal)
             }
         }?;
+
+        #[cfg(not(unix))]
+        return Err("Run with the --http arg on non-unix systems.");
     }
 
     println!("Server exited");
