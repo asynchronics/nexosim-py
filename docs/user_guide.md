@@ -6,15 +6,15 @@ hide:
 ## Before you start
 
 NeXosim-py provides both a [conventional API][nexosim.Simulation] and an
-[`asyncio` API][nexosim.aio.Simulation].
+[asynchronous API][nexosim.aio.Simulation].
 
-The `asyncio` API makes it possible to concurrently advance simulation time,
+The asynchronous API makes it possible to concurrently advance simulation time,
 schedule events and monitor simulation outputs.
 
 Because the asynchronous API faithfully reflects the conventional API, however,
 most examples in this guide use the conventional API. An example of concurrent
-simulation management leveraging the `asyncio` API is provided in a [dedicated
-section](#asyncio-api).  
+simulation management leveraging the asynchronous API is provided in a
+[dedicated section](#asyncio-api).  
 
 
 ## Setting up the simulation

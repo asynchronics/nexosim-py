@@ -24,7 +24,7 @@ theme:
     - content.code.copy
     - search.suggest
     - search.highlight
-  favicon: images/favicon-16x16.png
+  favicon: images/favicon-96x96.png
   palette:
     - scheme: slate
       primary: custom
