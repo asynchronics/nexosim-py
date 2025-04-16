@@ -5,8 +5,8 @@ hide:
 
 ## Before you start
 
-NeXosim-py provides both a [conventional API][nexosim.Simulation] and an
-[asynchronous API][nexosim.aio.Simulation].
+NeXosim-py provides both a [conventional API](reference/mod_root.md) and an
+[asynchronous API](reference/mod_aio.md).
 
 The asynchronous API makes it possible to concurrently advance simulation time,
 schedule events and monitor simulation outputs.
