@@ -14,10 +14,6 @@ The library provides:
 
 The package is compatible with NeXosim 0.3.2 and later 0.3.x versions.
 
-## Documentation
-
-The latest documentation and the user guide can be found [here](https://nexosim-py.readthedocs.io/).
-
 ## Installation
 
 To install the package, use pip:
@@ -25,6 +21,10 @@ To install the package, use pip:
 pip install nexosim-py
 ```
 <!-- index end -->
+
+## Documentation
+
+The latest documentation and the user guide can be found [here](https://nexosim-py.readthedocs.io/).
 
 ## Example
 
