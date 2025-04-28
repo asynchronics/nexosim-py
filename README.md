@@ -22,6 +22,10 @@ pip install nexosim-py
 ```
 <!-- index end -->
 
+## Documentation
+
+The latest documentation and the user guide can be found [here](https://nexosim-py.readthedocs.io/).
+
 ## Example
 
 Given a server implementation:
