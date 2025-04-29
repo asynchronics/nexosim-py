@@ -5,7 +5,7 @@ import warnings
 
 from nexosim._proto import simulation_pb2 as nexosim_dot___proto_dot_simulation__pb2
 
-GRPC_GENERATED_VERSION = '1.70.0'
+GRPC_GENERATED_VERSION = '1.71.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -39,15 +39,25 @@ class SimulationStub(object):
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.InitRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.InitReply.FromString,
                 _registered_method=True)
-        self.Terminate = channel.unary_unary(
-                '/simulation.v1.Simulation/Terminate',
-                request_serializer=nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.SerializeToString,
-                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.TerminateReply.FromString,
+        self.Restore = channel.unary_unary(
+                '/simulation.v1.Simulation/Restore',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreReply.FromString,
+                _registered_method=True)
+        self.Shutdown = channel.unary_unary(
+                '/simulation.v1.Simulation/Shutdown',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownReply.FromString,
                 _registered_method=True)
         self.Halt = channel.unary_unary(
                 '/simulation.v1.Simulation/Halt',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.HaltReply.FromString,
+                _registered_method=True)
+        self.Save = channel.unary_unary(
+                '/simulation.v1.Simulation/Save',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.SaveRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.SaveReply.FromString,
                 _registered_method=True)
         self.Time = channel.unary_unary(
                 '/simulation.v1.Simulation/Time',
@@ -120,13 +130,25 @@ class SimulationServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def Terminate(self, request, context):
+    def Restore(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Shutdown(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Halt(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Save(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -212,15 +234,25 @@ def add_SimulationServicer_to_server(servicer, server):
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.InitRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.InitReply.SerializeToString,
             ),
-            'Terminate': grpc.unary_unary_rpc_method_handler(
-                    servicer.Terminate,
-                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.FromString,
-                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.TerminateReply.SerializeToString,
+            'Restore': grpc.unary_unary_rpc_method_handler(
+                    servicer.Restore,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreReply.SerializeToString,
+            ),
+            'Shutdown': grpc.unary_unary_rpc_method_handler(
+                    servicer.Shutdown,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.ShutdownReply.SerializeToString,
             ),
             'Halt': grpc.unary_unary_rpc_method_handler(
                     servicer.Halt,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltReply.SerializeToString,
+            ),
+            'Save': grpc.unary_unary_rpc_method_handler(
+                    servicer.Save,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.SaveRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.SaveReply.SerializeToString,
             ),
             'Time': grpc.unary_unary_rpc_method_handler(
                     servicer.Time,
@@ -321,7 +353,7 @@ class Simulation(object):
             _registered_method=True)
 
     @staticmethod
-    def Terminate(request,
+    def Restore(request,
             target,
             options=(),
             channel_credentials=None,
@@ -334,9 +366,36 @@ class Simulation(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/simulation.v1.Simulation/Terminate',
-            nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.SerializeToString,
-            nexosim_dot___proto_dot_simulation__pb2.TerminateReply.FromString,
+            '/simulation.v1.Simulation/Restore',
+            nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.RestoreReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Shutdown(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/Shutdown',
+            nexosim_dot___proto_dot_simulation__pb2.ShutdownRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.ShutdownReply.FromString,
             options,
             channel_credentials,
             insecure,
@@ -364,6 +423,33 @@ class Simulation(object):
             '/simulation.v1.Simulation/Halt',
             nexosim_dot___proto_dot_simulation__pb2.HaltRequest.SerializeToString,
             nexosim_dot___proto_dot_simulation__pb2.HaltReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Save(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/Save',
+            nexosim_dot___proto_dot_simulation__pb2.SaveRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.SaveReply.FromString,
             options,
             channel_credentials,
             insecure,

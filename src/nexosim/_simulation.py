@@ -81,7 +81,7 @@ class Simulation:
         """Closes the gRPC channel."""
         self._channel.close()
 
-    def start(self, cfg: typing.Any = None) -> None:
+    def start(self, time: MonotonicTime, cfg: typing.Any = None) -> None:
         """
         Creates a simulation bench.
 
@@ -104,7 +104,8 @@ class Simulation:
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
         """
-        request = simulation_pb2.InitRequest(cfg=cbor2_converter.dumps(cfg))
+        time = PbTimestamp(seconds=time.secs, nanos=time.nanos)
+        request = simulation_pb2.InitRequest(time=time, cfg=cbor2_converter.dumps(cfg))
         reply = self._stub.Init(request)
 
         if reply.HasField("error"):
@@ -139,6 +140,18 @@ class Simulation:
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
+
+    def save(self) -> bytes:
+        request = simulation_pb2.SaveRequest()
+        reply = self._stub.Save(request)
+
+        if reply.HasField("state"):
+            return reply.state
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        raise exceptions.UnexpectedError("unexpected response")
 
     def time(self) -> MonotonicTime:
         """Returns the current simulation time.
