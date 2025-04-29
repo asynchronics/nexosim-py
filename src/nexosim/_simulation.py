@@ -153,6 +153,13 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
+    def restore(self, state: bytes):
+        request = simulation_pb2.RestoreRequest(state=state)
+        reply = self._stub.Restore(request)
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
     def time(self) -> MonotonicTime:
         """Returns the current simulation time.
 
