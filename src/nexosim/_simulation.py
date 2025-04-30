@@ -153,8 +153,13 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
-    def restore(self, state: bytes):
-        request = simulation_pb2.RestoreRequest(state=state)
+    def restore(self, state: bytes, cfg: bytes | None = None):
+        kwargs = {"state": state}
+
+        if cfg is not None:
+            kwargs["cfg"] = cfg
+
+        request = simulation_pb2.RestoreRequest(**kwargs)
         reply = self._stub.Restore(request)
 
         if reply.HasField("error"):
