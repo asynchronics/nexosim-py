@@ -162,6 +162,125 @@ class StepUnboundedReply(_message.Message):
     error: Error
     def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
+class ListEventSourcesRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class ListEventSourcesReply(_message.Message):
+    __slots__ = ("source_names", "empty", "error")
+    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    source_names: _containers.RepeatedScalarFieldContainer[str]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, source_names: _Optional[_Iterable[str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class GetEventSourceSchemasRequest(_message.Message):
+    __slots__ = ("source_names",)
+    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    source_names: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, source_names: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class GetEventSourceSchemasReply(_message.Message):
+    __slots__ = ("schemas", "empty", "error")
+    class SchemasEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    schemas: _containers.ScalarMap[str, str]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, schemas: _Optional[_Mapping[str, str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class ListQuerySourcesRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class ListQuerySourcesReply(_message.Message):
+    __slots__ = ("source_names", "empty", "error")
+    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    source_names: _containers.RepeatedScalarFieldContainer[str]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, source_names: _Optional[_Iterable[str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class QuerySchema(_message.Message):
+    __slots__ = ("input", "output")
+    INPUT_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_FIELD_NUMBER: _ClassVar[int]
+    input: str
+    output: str
+    def __init__(self, input: _Optional[str] = ..., output: _Optional[str] = ...) -> None: ...
+
+class GetQuerySourceSchemasRequest(_message.Message):
+    __slots__ = ("source_names",)
+    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    source_names: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, source_names: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class GetQuerySourceSchemasReply(_message.Message):
+    __slots__ = ("schemas", "empty", "error")
+    class SchemasEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: QuerySchema
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[QuerySchema, _Mapping]] = ...) -> None: ...
+    SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    schemas: _containers.MessageMap[str, QuerySchema]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, schemas: _Optional[_Mapping[str, QuerySchema]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class ListEventSinksRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class ListEventSinksReply(_message.Message):
+    __slots__ = ("sink_names", "empty", "error")
+    SINK_NAMES_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    sink_names: _containers.RepeatedScalarFieldContainer[str]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, sink_names: _Optional[_Iterable[str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class GetEventSinkSchemasRequest(_message.Message):
+    __slots__ = ("sink_names",)
+    SINK_NAMES_FIELD_NUMBER: _ClassVar[int]
+    sink_names: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, sink_names: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class GetEventSinkSchemasReply(_message.Message):
+    __slots__ = ("schemas", "empty", "error")
+    class SchemasEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    SCHEMAS_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    schemas: _containers.ScalarMap[str, str]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, schemas: _Optional[_Mapping[str, str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
 class ScheduleEventRequest(_message.Message):
     __slots__ = ("time", "duration", "source_name", "event", "period", "with_key")
     TIME_FIELD_NUMBER: _ClassVar[int]

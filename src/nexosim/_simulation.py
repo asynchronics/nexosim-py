@@ -295,6 +295,60 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
+    def list_event_sources(self):
+        request = simulation_pb2.ListEventSourcesRequest()
+        reply = self._stub.ListEventSources(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.source_names
+
+    def get_event_source_schemas(self, source_names: list[str] | None = None):
+        request = simulation_pb2.GetEventSourceSchemasRequest(source_names=source_names)
+        reply = self._stub.GetEventSourceSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.schemas
+
+    def list_query_sources(self):
+        request = simulation_pb2.ListQuerySourcesRequest()
+        reply = self._stub.ListQuerySources(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.source_names
+
+    def get_query_source_schemas(self, source_names: list[str] | None = None):
+        request = simulation_pb2.GetQuerySourceSchemasRequest(source_names=source_names)
+        reply = self._stub.GetQuerySourceSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.schemas
+
+    def list_event_sinks(self):
+        request = simulation_pb2.ListEventSinksRequest()
+        reply = self._stub.ListEventSinks(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.sink_names
+
+    def get_event_sink_schemas(self, sink_names: list[str] | None = None):
+        request = simulation_pb2.GetEventSinkSchemasRequest(sink_names=sink_names)
+        reply = self._stub.GetEventSinkSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.schemas
+
     @typing.overload
     def schedule_event(
         self,
