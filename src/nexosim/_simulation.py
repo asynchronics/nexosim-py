@@ -648,6 +648,10 @@ def _to_error(error: simulation_pb2.Error) -> exceptions.SimulationError:
             return exceptions.InvalidMessageError(error.message)
         case 6:
             return exceptions.InvalidKeyError(error.message)
+        case 7:
+            return exceptions.InvalidTimeoutError(error.message)
+        case 10:
+            return exceptions.InitializerPanicError(error.message)
         case 11:
             return exceptions.SimulationNotStartedError(error.message)
         case 12:
