@@ -275,6 +275,12 @@ def enumclass(cls: type[_T]) -> type[_T]:
     else:
         setattr(cls, "type", ty)
 
+    # This avoids the variant's hook being overwritten by the enum hook
+    # in single variant enums
+    structure_func = _cbor2_converter.structure
+    if typing.get_origin(ty) is not typing.Union:
+        structure_func = _cbor2_converter.get_structure_hook(ty)
+
     # Custom deserialization hook.
     def structure_enum_hook(d: typing.Any, t: object):  # type: ignore
         if isinstance(d, dict):
@@ -301,7 +307,7 @@ def enumclass(cls: type[_T]) -> type[_T]:
                 "could not match unstructured data to a valid enum variant"
             ) from err
 
-        return _cbor2_converter.structure(ty_unstruct, ty)
+        return structure_func(ty_unstruct, ty)
 
     _cbor2_converter.register_structure_hook(ty, structure_enum_hook)
 
