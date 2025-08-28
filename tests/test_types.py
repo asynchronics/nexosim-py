@@ -197,6 +197,106 @@ class TestEnumType:
             1, "s"
         )
 
+    def test_structure_single_variant_unit(self, unit_type):
+        @enumclass
+        class SingleVar:
+            Var = unit_type
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_structure_hook(SingleVar.type)
+
+        assert isinstance(f("Var", SingleVar.type), cls)
+
+    def test_unstructure_single_variant_unit(self, unit_type):
+        @enumclass
+        class SingleVar:
+            Var = unit_type
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_unstructure_hook(cls)
+
+        assert f(cls) == {"Var": None}
+
+    def test_structure_single_variant_0_arg_tuple(self, tuple_type_0_arg):
+        @enumclass
+        class SingleVar:
+            Var = tuple_type_0_arg
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_structure_hook(SingleVar.type)
+
+        assert f({"Var": []}, SingleVar.type) == cls()
+
+    def test_unstructure_single_variant_0_arg_tuple(self, tuple_type_0_arg):
+        @enumclass
+        class SingleVar:
+            Var = tuple_type_0_arg
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_unstructure_hook(cls)
+
+        assert f(cls) == {"Var": []}
+
+    def test_structure_single_variant_1_arg_tuple(self, tuple_type_1_arg):
+        @enumclass
+        class SingleVar:
+            Var = tuple_type_1_arg
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_structure_hook(SingleVar.type)
+
+        assert f({"Var": 1.0}, SingleVar.type) == cls(1.0)
+
+    def test_unstructure_single_variant_1_arg_tuple(self, tuple_type_1_arg):
+        @enumclass
+        class SingleVar:
+            Var = tuple_type_1_arg
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_unstructure_hook(cls)
+
+        assert f(cls(1.0)) == {"Var": 1.0}
+
+    def test_structure_single_variant_2_arg_tuple(self, tuple_type_2_arg):
+        @enumclass
+        class SingleVar:
+            Var = tuple_type_2_arg
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_structure_hook(SingleVar.type)
+
+        assert f({"Var": [1.0, "a"]}, SingleVar.type) == cls(1.0, "a")
+
+    def test_unstructure_single_variant_2_arg_tuple(self, tuple_type_2_arg):
+        @enumclass
+        class SingleVar:
+            Var = tuple_type_2_arg
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_unstructure_hook(cls)
+
+        assert f(cls(1.0, "a")) == {"Var": [1.0, "a"]}
+
+    def test_structure_single_variant_struct(self, struct_type):
+        @enumclass
+        class SingleVar:
+            Var = struct_type
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_structure_hook(SingleVar.type)
+
+        assert f({"Var": {"foo": 1, "bar": "a"}}, SingleVar.type) == cls(1, "a")
+
+    def test_unstructure_single_variant_struct(self, struct_type):
+        @enumclass
+        class SingleVar:
+            Var = struct_type
+
+        cls = SingleVar.Var
+        f = cbor2_converter.get_unstructure_hook(cls)
+
+        assert f(cls(1.0, "a")) == {"Var": {"foo": 1, "bar": "a"}}
+
     def test_structure_multi_key_dict_value_error(self, enum_type):
         f = cbor2_converter.get_structure_hook(enum_type.type)
 

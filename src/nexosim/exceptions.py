@@ -48,6 +48,18 @@ class InvalidKeyError(SimulationError):
     pass
 
 
+class InvalidTimeoutError(SimulationError):
+    """Raised when a negative timeout was provided."""
+
+    pass
+
+
+class InitializerPanicError(SimulationError):
+    """Raised when the simulation initializer has panicked."""
+
+    pass
+
+
 class SimulationNotStartedError(SimulationError):
     """Raised when the simulation is invoked before it was initialized."""
 
