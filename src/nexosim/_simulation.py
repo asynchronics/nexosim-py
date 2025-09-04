@@ -1,4 +1,5 @@
 import inspect
+import json
 import typing
 
 import cbor2
@@ -632,6 +633,151 @@ class Simulation:
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
+
+    def list_event_sources(self) -> list[str]:
+        """Lists available event sources.
+
+        Returns:
+            A list of event source names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+        request = simulation_pb2.ListEventSourcesRequest()
+        reply = self._stub.ListEventSources(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return list(reply.source_names)
+
+    def get_event_source_schemas(
+        self, source_names: typing.Iterable[str]
+    ) -> dict[str, dict]:
+        """Retrieves the schema of the event sources specified in `source_names`.
+
+        Args:
+            source_names: The names of the event sources.
+
+        Returns:
+            A mapping of event source schemas to their names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+        request = simulation_pb2.GetEventSourceSchemasRequest(source_names=source_names)
+        reply = self._stub.GetEventSourceSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return {k: json.loads(v) for k, v in reply.schemas.items() if v}
+
+    def list_query_sources(self) -> list[str]:
+        """Lists available query sources.
+
+        Returns:
+            A list of query source names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+        request = simulation_pb2.ListQuerySourcesRequest()
+        reply = self._stub.ListQuerySources(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return list(reply.source_names)
+
+    def get_query_source_schemas(
+        self, source_names: typing.Iterable[str]
+    ) -> dict[str, dict]:
+        """Retrieves the schema of the query sources specified in `source_names`.
+
+        Args:
+            source_names: The names of the query sources.
+
+        Returns:
+            A mapping of query source schemas to their names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+        request = simulation_pb2.GetQuerySourceSchemasRequest(source_names=source_names)
+        reply = self._stub.GetQuerySourceSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return {
+            k: {"request": json.loads(v.request), "reply": json.loads(v.reply)}
+            for k, v in reply.schemas.items()
+            if v
+        }
+
+    def list_event_sinks(self) -> list[str]:
+        """Lists available event sinks.
+
+        Returns:
+            A list of event sink names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+        request = simulation_pb2.ListEventSinksRequest()
+        reply = self._stub.ListEventSinks(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return list(reply.sink_names)
+
+    def get_event_sink_schemas(
+        self, sink_names: typing.Iterable[str]
+    ) -> dict[str, dict]:
+        """Retrieves the schema of the event sinks specified in `sink_names`.
+
+        Args:
+            sink_names: The names of the event sinks.
+
+        Returns:
+            A mapping of event sinks schemas to their names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+        request = simulation_pb2.GetEventSinkSchemasRequest(sink_names=sink_names)
+        reply = self._stub.GetEventSinkSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return {k: json.loads(v) for k, v in reply.schemas.items() if v}
 
 
 def _to_error(error: simulation_pb2.Error) -> exceptions.SimulationError:

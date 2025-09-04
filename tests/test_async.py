@@ -255,3 +255,57 @@ async def test_halt(rt_sim):
         await rt_sim.halt()
 
     await asyncio.gather(run(), halt())
+
+
+@pytest.mark.asyncio
+async def test_list_event_sources(sim):
+    result = await sim.list_event_sources()
+    assert isinstance(result, list)
+    assert set(result) == {"brew_time", "brew_cmd", "tank_fill", "raw_tank_fill"}
+
+
+@pytest.mark.asyncio
+async def test_list_query_sources(sim):
+    result = await sim.list_query_sources()
+    assert isinstance(result, list)
+    assert result == ["test_pump"]
+
+
+@pytest.mark.asyncio
+async def test_list_event_sinks(sim):
+    result = await sim.list_event_sinks()
+    assert isinstance(result, list)
+    assert result == ["flow_rate"]
+
+
+@pytest.mark.asyncio
+async def test_get_event_source_schemas(sim):
+    result = await sim.get_event_source_schemas(["brew_cmd"])
+
+    assert isinstance(result, dict)
+    assert "brew_cmd" in result
+
+
+@pytest.mark.asyncio
+async def test_get_event_source_schemas_raw_endpoint(sim):
+    result = await sim.get_event_source_schemas(["raw_tank_fill"])
+
+    assert len(result) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_query_source_schemas(sim):
+    result = await sim.get_query_source_schemas(["test_pump"])
+
+    assert isinstance(result, dict)
+    assert "test_pump" in result
+    assert "request" in result["test_pump"]
+    assert "reply" in result["test_pump"]
+
+
+@pytest.mark.asyncio
+async def test_get_event_sink_schemas(sim):
+    result = await sim.get_event_sink_schemas(["flow_rate"])
+
+    assert isinstance(result, dict)
+    assert "flow_rate" in result

@@ -1,4 +1,4 @@
-use nexosim::ports::{EventQueue, EventSlot, EventSource};
+use nexosim::ports::{EventQueue, EventSlot, EventSource, QuerySource};
 use nexosim::registry::EndpointRegistry;
 use nexosim::simulation::{Mailbox, SimInit, Simulation, SimulationError};
 use nexosim::time::{AutoSystemClock, MonotonicTime};
@@ -52,6 +52,19 @@ pub fn coffee_bench(
     registry.add_event_source(brew_cmd, "brew_cmd").unwrap();
     registry.add_event_source(brew_time, "brew_time").unwrap();
     registry.add_event_source(tank_fill, "tank_fill").unwrap();
+
+    let mut test_pump_cmd = QuerySource::new();
+    test_pump_cmd.connect(coffee::Pump::test_cmd, &pump_mbox);
+    registry
+        .add_query_source(test_pump_cmd, "test_pump")
+        .unwrap();
+
+    // Event source added to the registry as raw.
+    let mut raw_tank_fill = EventSource::new();
+    raw_tank_fill.connect(coffee::Tank::fill, &tank_addr);
+    registry
+        .add_event_source_raw(raw_tank_fill, "raw_tank_fill")
+        .unwrap();
 
     // Assembly and initialization.
     let sim = SimInit::new()

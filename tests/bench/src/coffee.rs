@@ -2,6 +2,7 @@
 
 use std::time::Duration;
 
+use nexosim::Message;
 use serde::{Deserialize, Serialize};
 
 use nexosim::model::{Context, InitializedModel, Model};
@@ -35,6 +36,14 @@ impl Pump {
         };
 
         self.flow_rate.send(flow_rate).await;
+    }
+
+    /// Checks what the flow rate will be after receiving the command -- replier port.
+    pub(crate) async fn test_cmd(&mut self, cmd: PumpCommand) -> f64 {
+        match cmd {
+            PumpCommand::On => self.nominal_flow_rate,
+            PumpCommand::Off => 0.0,
+        }
     }
 }
 
@@ -128,7 +137,7 @@ impl Controller {
 impl Model for Controller {}
 
 /// ON/OFF pump command.
-#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize, Message)]
 pub(crate) enum PumpCommand {
     On,
     Off,
@@ -293,7 +302,7 @@ struct TankDynamicState {
 }
 
 /// Water level in the tank.
-#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize, Message)]
 pub(crate) enum WaterSenseState {
     Empty,
     NotEmpty,

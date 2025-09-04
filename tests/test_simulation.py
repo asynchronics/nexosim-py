@@ -130,3 +130,50 @@ def test_open_sink(sim):
     sim.process_event("brew_cmd")
 
     assert sim.read_events("flow_rate") == [4.5e-6]
+
+
+def test_list_event_sources(sim):
+    result = sim.list_event_sources()
+    assert isinstance(result, list)
+    assert set(result) == {"brew_time", "brew_cmd", "tank_fill", "raw_tank_fill"}
+
+
+def test_list_query_sources(sim):
+    result = sim.list_query_sources()
+    assert isinstance(result, list)
+    assert result == ["test_pump"]
+
+
+def test_list_event_sinks(sim):
+    result = sim.list_event_sinks()
+    assert isinstance(result, list)
+    assert result == ["flow_rate"]
+
+
+def test_get_event_source_schemas(sim):
+    result = sim.get_event_source_schemas(["brew_cmd"])
+
+    assert isinstance(result, dict)
+    assert "brew_cmd" in result
+
+
+def test_get_event_source_schemas_raw_endpoint(sim):
+    result = sim.get_event_source_schemas(["raw_tank_fill"])
+
+    assert len(result) == 0
+
+
+def test_get_query_source_schemas(sim):
+    result = sim.get_query_source_schemas(["test_pump"])
+
+    assert isinstance(result, dict)
+    assert "test_pump" in result
+    assert "request" in result["test_pump"]
+    assert "reply" in result["test_pump"]
+
+
+def test_get_event_sink_schemas(sim):
+    result = sim.get_event_sink_schemas(["flow_rate"])
+
+    assert isinstance(result, dict)
+    assert "flow_rate" in result

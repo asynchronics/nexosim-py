@@ -1,8 +1,8 @@
-use nexosim::model::Model;
 use nexosim::ports::Output;
+use nexosim::{model::Model, Message};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Message)]
 pub enum TestLoad {
     VarA(),
     VarB {},
@@ -13,7 +13,7 @@ pub enum TestLoad {
     VarG { x: i32, y: TestSubLoad },
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Message)]
 pub enum TestSubLoad {
     VarA,
     VarB {},
