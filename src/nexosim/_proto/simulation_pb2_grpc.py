@@ -5,7 +5,7 @@ import warnings
 
 from nexosim._proto import simulation_pb2 as nexosim_dot___proto_dot_simulation__pb2
 
-GRPC_GENERATED_VERSION = '1.70.0'
+GRPC_GENERATED_VERSION = '1.71.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -39,6 +39,11 @@ class SimulationStub(object):
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.InitRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.InitReply.FromString,
                 _registered_method=True)
+        self.Restore = channel.unary_unary(
+                '/simulation.v1.Simulation/Restore',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreReply.FromString,
+                _registered_method=True)
         self.Terminate = channel.unary_unary(
                 '/simulation.v1.Simulation/Terminate',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.SerializeToString,
@@ -48,6 +53,11 @@ class SimulationStub(object):
                 '/simulation.v1.Simulation/Halt',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.HaltReply.FromString,
+                _registered_method=True)
+        self.Save = channel.unary_unary(
+                '/simulation.v1.Simulation/Save',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.SaveRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.SaveReply.FromString,
                 _registered_method=True)
         self.Time = channel.unary_unary(
                 '/simulation.v1.Simulation/Time',
@@ -68,6 +78,36 @@ class SimulationStub(object):
                 '/simulation.v1.Simulation/StepUnbounded',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.StepUnboundedRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.StepUnboundedReply.FromString,
+                _registered_method=True)
+        self.ListEventSources = channel.unary_unary(
+                '/simulation.v1.Simulation/ListEventSources',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSourcesRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSourcesReply.FromString,
+                _registered_method=True)
+        self.GetEventSourceSchemas = channel.unary_unary(
+                '/simulation.v1.Simulation/GetEventSourceSchemas',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSourceSchemasRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSourceSchemasReply.FromString,
+                _registered_method=True)
+        self.ListQuerySources = channel.unary_unary(
+                '/simulation.v1.Simulation/ListQuerySources',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.ListQuerySourcesRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ListQuerySourcesReply.FromString,
+                _registered_method=True)
+        self.GetQuerySourceSchemas = channel.unary_unary(
+                '/simulation.v1.Simulation/GetQuerySourceSchemas',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.GetQuerySourceSchemasRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.GetQuerySourceSchemasReply.FromString,
+                _registered_method=True)
+        self.ListEventSinks = channel.unary_unary(
+                '/simulation.v1.Simulation/ListEventSinks',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSinksRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSinksReply.FromString,
+                _registered_method=True)
+        self.GetEventSinkSchemas = channel.unary_unary(
+                '/simulation.v1.Simulation/GetEventSinkSchemas',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSinkSchemasRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSinkSchemasReply.FromString,
                 _registered_method=True)
         self.ScheduleEvent = channel.unary_unary(
                 '/simulation.v1.Simulation/ScheduleEvent',
@@ -120,6 +160,12 @@ class SimulationServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Restore(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Terminate(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -127,6 +173,12 @@ class SimulationServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Halt(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Save(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -151,6 +203,42 @@ class SimulationServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def StepUnbounded(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListEventSources(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetEventSourceSchemas(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListQuerySources(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetQuerySourceSchemas(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListEventSinks(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetEventSinkSchemas(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -212,6 +300,11 @@ def add_SimulationServicer_to_server(servicer, server):
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.InitRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.InitReply.SerializeToString,
             ),
+            'Restore': grpc.unary_unary_rpc_method_handler(
+                    servicer.Restore,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreReply.SerializeToString,
+            ),
             'Terminate': grpc.unary_unary_rpc_method_handler(
                     servicer.Terminate,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.FromString,
@@ -221,6 +314,11 @@ def add_SimulationServicer_to_server(servicer, server):
                     servicer.Halt,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltReply.SerializeToString,
+            ),
+            'Save': grpc.unary_unary_rpc_method_handler(
+                    servicer.Save,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.SaveRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.SaveReply.SerializeToString,
             ),
             'Time': grpc.unary_unary_rpc_method_handler(
                     servicer.Time,
@@ -241,6 +339,36 @@ def add_SimulationServicer_to_server(servicer, server):
                     servicer.StepUnbounded,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.StepUnboundedRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.StepUnboundedReply.SerializeToString,
+            ),
+            'ListEventSources': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListEventSources,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSourcesRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSourcesReply.SerializeToString,
+            ),
+            'GetEventSourceSchemas': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetEventSourceSchemas,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSourceSchemasRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSourceSchemasReply.SerializeToString,
+            ),
+            'ListQuerySources': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListQuerySources,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ListQuerySourcesRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.ListQuerySourcesReply.SerializeToString,
+            ),
+            'GetQuerySourceSchemas': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetQuerySourceSchemas,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.GetQuerySourceSchemasRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.GetQuerySourceSchemasReply.SerializeToString,
+            ),
+            'ListEventSinks': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListEventSinks,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSinksRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.ListEventSinksReply.SerializeToString,
+            ),
+            'GetEventSinkSchemas': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetEventSinkSchemas,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSinkSchemasRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.GetEventSinkSchemasReply.SerializeToString,
             ),
             'ScheduleEvent': grpc.unary_unary_rpc_method_handler(
                     servicer.ScheduleEvent,
@@ -321,6 +449,33 @@ class Simulation(object):
             _registered_method=True)
 
     @staticmethod
+    def Restore(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/Restore',
+            nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.RestoreReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def Terminate(request,
             target,
             options=(),
@@ -364,6 +519,33 @@ class Simulation(object):
             '/simulation.v1.Simulation/Halt',
             nexosim_dot___proto_dot_simulation__pb2.HaltRequest.SerializeToString,
             nexosim_dot___proto_dot_simulation__pb2.HaltReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Save(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/Save',
+            nexosim_dot___proto_dot_simulation__pb2.SaveRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.SaveReply.FromString,
             options,
             channel_credentials,
             insecure,
@@ -472,6 +654,168 @@ class Simulation(object):
             '/simulation.v1.Simulation/StepUnbounded',
             nexosim_dot___proto_dot_simulation__pb2.StepUnboundedRequest.SerializeToString,
             nexosim_dot___proto_dot_simulation__pb2.StepUnboundedReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListEventSources(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/ListEventSources',
+            nexosim_dot___proto_dot_simulation__pb2.ListEventSourcesRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.ListEventSourcesReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetEventSourceSchemas(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/GetEventSourceSchemas',
+            nexosim_dot___proto_dot_simulation__pb2.GetEventSourceSchemasRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.GetEventSourceSchemasReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListQuerySources(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/ListQuerySources',
+            nexosim_dot___proto_dot_simulation__pb2.ListQuerySourcesRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.ListQuerySourcesReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetQuerySourceSchemas(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/GetQuerySourceSchemas',
+            nexosim_dot___proto_dot_simulation__pb2.GetQuerySourceSchemasRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.GetQuerySourceSchemasReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListEventSinks(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/ListEventSinks',
+            nexosim_dot___proto_dot_simulation__pb2.ListEventSinksRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.ListEventSinksReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetEventSinkSchemas(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/GetEventSinkSchemas',
+            nexosim_dot___proto_dot_simulation__pb2.GetEventSinkSchemasRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.GetEventSinkSchemasReply.FromString,
             options,
             channel_credentials,
             insecure,

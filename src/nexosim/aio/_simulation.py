@@ -71,7 +71,9 @@ class Simulation:
         """Closes the gRPC channel."""
         await self._channel.close()
 
-    async def start(self, cfg: typing.Any = None) -> None:
+    async def start(
+        self, cfg: typing.Any = None, time: typing.Optional[MonotonicTime] = None
+    ) -> None:
         """
         Creates a simulation bench.
 
@@ -85,6 +87,8 @@ class Simulation:
                 serialized/deserialized to the expected bench configuration
                 type. The `None` default is appropriate if the bench initializer
                 expects the Rust type `()` or accepts an `Option::None`.
+            time: The time at which the simulation will be initialized. If
+                `None` the simulation is initialized at 1970-01-01 00:00:00.
 
         Raises:
             exceptions.SimulationError: One of the exceptions derived from
@@ -94,7 +98,11 @@ class Simulation:
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
         """
-        request = simulation_pb2.InitRequest(cfg=cbor2_converter.dumps(cfg))
+        time = time or MonotonicTime.create()
+        request = simulation_pb2.InitRequest(
+            cfg=cbor2_converter.dumps(cfg),
+            time=PbTimestamp(seconds=time.secs, nanos=time.nanos),
+        )
         reply = await self._stub.Init(request)  # type: ignore
 
         if reply.HasField("error"):
