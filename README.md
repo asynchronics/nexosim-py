@@ -13,6 +13,7 @@ The library provides:
 ## Compatibility
 
 The package is compatible with NeXosim 0.3.2 and later 0.3.x versions.
+Supported python versions: 3.11, 3.12, 3.13, 3.14
 
 ## Installation
 
