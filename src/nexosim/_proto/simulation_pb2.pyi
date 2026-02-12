@@ -19,23 +19,31 @@ class ErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     INVALID_MESSAGE: _ClassVar[ErrorCode]
     INVALID_KEY: _ClassVar[ErrorCode]
     INVALID_TIMEOUT: _ClassVar[ErrorCode]
-    INITIALIZER_PANIC: _ClassVar[ErrorCode]
+    BENCH_PANIC: _ClassVar[ErrorCode]
+    BENCH_ERROR: _ClassVar[ErrorCode]
+    BENCH_NOT_BUILT: _ClassVar[ErrorCode]
+    DUPLICATE_EVENT_SOURCE: _ClassVar[ErrorCode]
+    DUPLICATE_QUERY_SOURCE: _ClassVar[ErrorCode]
+    DUPLICATE_EVENT_SINK: _ClassVar[ErrorCode]
+    INVALID_BENCH_CONFIG: _ClassVar[ErrorCode]
+    SIMULATION_PANIC: _ClassVar[ErrorCode]
     SIMULATION_NOT_STARTED: _ClassVar[ErrorCode]
-    SIMULATION_HALTED: _ClassVar[ErrorCode]
     SIMULATION_TERMINATED: _ClassVar[ErrorCode]
     SIMULATION_DEADLOCK: _ClassVar[ErrorCode]
     SIMULATION_MESSAGE_LOSS: _ClassVar[ErrorCode]
     SIMULATION_NO_RECIPIENT: _ClassVar[ErrorCode]
-    SIMULATION_PANIC: _ClassVar[ErrorCode]
     SIMULATION_TIMEOUT: _ClassVar[ErrorCode]
     SIMULATION_OUT_OF_SYNC: _ClassVar[ErrorCode]
     SIMULATION_BAD_QUERY: _ClassVar[ErrorCode]
     SIMULATION_TIME_OUT_OF_RANGE: _ClassVar[ErrorCode]
-    SOURCE_NOT_FOUND: _ClassVar[ErrorCode]
+    EVENT_SOURCE_NOT_FOUND: _ClassVar[ErrorCode]
+    QUERY_SOURCE_NOT_FOUND: _ClassVar[ErrorCode]
     SINK_NOT_FOUND: _ClassVar[ErrorCode]
-    UNREGISTERED: _ClassVar[ErrorCode]
-    INVALID_TYPE: _ClassVar[ErrorCode]
-    DESERIALIZATION_ERROR: _ClassVar[ErrorCode]
+    SINK_TERMINATED: _ClassVar[ErrorCode]
+    SINK_READ_RACE: _ClassVar[ErrorCode]
+    SINK_READ_TIMEOUT: _ClassVar[ErrorCode]
+    INVALID_EVENT_TYPE: _ClassVar[ErrorCode]
+    INVALID_QUERY_TYPE: _ClassVar[ErrorCode]
     SAVE_ERROR: _ClassVar[ErrorCode]
     RESTORE_ERROR: _ClassVar[ErrorCode]
 INTERNAL_ERROR: ErrorCode
@@ -46,23 +54,31 @@ INVALID_DEADLINE: ErrorCode
 INVALID_MESSAGE: ErrorCode
 INVALID_KEY: ErrorCode
 INVALID_TIMEOUT: ErrorCode
-INITIALIZER_PANIC: ErrorCode
+BENCH_PANIC: ErrorCode
+BENCH_ERROR: ErrorCode
+BENCH_NOT_BUILT: ErrorCode
+DUPLICATE_EVENT_SOURCE: ErrorCode
+DUPLICATE_QUERY_SOURCE: ErrorCode
+DUPLICATE_EVENT_SINK: ErrorCode
+INVALID_BENCH_CONFIG: ErrorCode
+SIMULATION_PANIC: ErrorCode
 SIMULATION_NOT_STARTED: ErrorCode
-SIMULATION_HALTED: ErrorCode
 SIMULATION_TERMINATED: ErrorCode
 SIMULATION_DEADLOCK: ErrorCode
 SIMULATION_MESSAGE_LOSS: ErrorCode
 SIMULATION_NO_RECIPIENT: ErrorCode
-SIMULATION_PANIC: ErrorCode
 SIMULATION_TIMEOUT: ErrorCode
 SIMULATION_OUT_OF_SYNC: ErrorCode
 SIMULATION_BAD_QUERY: ErrorCode
 SIMULATION_TIME_OUT_OF_RANGE: ErrorCode
-SOURCE_NOT_FOUND: ErrorCode
+EVENT_SOURCE_NOT_FOUND: ErrorCode
+QUERY_SOURCE_NOT_FOUND: ErrorCode
 SINK_NOT_FOUND: ErrorCode
-UNREGISTERED: ErrorCode
-INVALID_TYPE: ErrorCode
-DESERIALIZATION_ERROR: ErrorCode
+SINK_TERMINATED: ErrorCode
+SINK_READ_RACE: ErrorCode
+SINK_READ_TIMEOUT: ErrorCode
+INVALID_EVENT_TYPE: ErrorCode
+INVALID_QUERY_TYPE: ErrorCode
 SAVE_ERROR: ErrorCode
 RESTORE_ERROR: ErrorCode
 
@@ -74,6 +90,38 @@ class Error(_message.Message):
     message: str
     def __init__(self, code: _Optional[_Union[ErrorCode, str]] = ..., message: _Optional[str] = ...) -> None: ...
 
+class Path(_message.Message):
+    __slots__ = ("segments",)
+    SEGMENTS_FIELD_NUMBER: _ClassVar[int]
+    segments: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, segments: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class EventSourceSchema(_message.Message):
+    __slots__ = ("source", "event")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    EVENT_FIELD_NUMBER: _ClassVar[int]
+    source: Path
+    event: str
+    def __init__(self, source: _Optional[_Union[Path, _Mapping]] = ..., event: _Optional[str] = ...) -> None: ...
+
+class QuerySourceSchema(_message.Message):
+    __slots__ = ("source", "request", "reply")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    REQUEST_FIELD_NUMBER: _ClassVar[int]
+    REPLY_FIELD_NUMBER: _ClassVar[int]
+    source: Path
+    request: str
+    reply: str
+    def __init__(self, source: _Optional[_Union[Path, _Mapping]] = ..., request: _Optional[str] = ..., reply: _Optional[str] = ...) -> None: ...
+
+class EventSinkSchema(_message.Message):
+    __slots__ = ("sink", "event")
+    SINK_FIELD_NUMBER: _ClassVar[int]
+    EVENT_FIELD_NUMBER: _ClassVar[int]
+    sink: Path
+    event: str
+    def __init__(self, sink: _Optional[_Union[Path, _Mapping]] = ..., event: _Optional[str] = ...) -> None: ...
+
 class EventKey(_message.Message):
     __slots__ = ("subkey1", "subkey2")
     SUBKEY1_FIELD_NUMBER: _ClassVar[int]
@@ -82,13 +130,25 @@ class EventKey(_message.Message):
     subkey2: int
     def __init__(self, subkey1: _Optional[int] = ..., subkey2: _Optional[int] = ...) -> None: ...
 
-class InitRequest(_message.Message):
-    __slots__ = ("time", "cfg")
-    TIME_FIELD_NUMBER: _ClassVar[int]
+class BuildRequest(_message.Message):
+    __slots__ = ("cfg",)
     CFG_FIELD_NUMBER: _ClassVar[int]
-    time: _timestamp_pb2.Timestamp
     cfg: bytes
-    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., cfg: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, cfg: _Optional[bytes] = ...) -> None: ...
+
+class BuildReply(_message.Message):
+    __slots__ = ("empty", "error")
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class InitRequest(_message.Message):
+    __slots__ = ("time",)
+    TIME_FIELD_NUMBER: _ClassVar[int]
+    time: _timestamp_pb2.Timestamp
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class InitReply(_message.Message):
     __slots__ = ("empty", "error")
@@ -98,13 +158,25 @@ class InitReply(_message.Message):
     error: Error
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
+class InitAndRunRequest(_message.Message):
+    __slots__ = ("time",)
+    TIME_FIELD_NUMBER: _ClassVar[int]
+    time: _timestamp_pb2.Timestamp
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
+class InitAndRunReply(_message.Message):
+    __slots__ = ("time", "error")
+    TIME_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    time: _timestamp_pb2.Timestamp
+    error: Error
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
 class RestoreRequest(_message.Message):
-    __slots__ = ("state", "cfg")
+    __slots__ = ("state",)
     STATE_FIELD_NUMBER: _ClassVar[int]
-    CFG_FIELD_NUMBER: _ClassVar[int]
     state: bytes
-    cfg: bytes
-    def __init__(self, state: _Optional[bytes] = ..., cfg: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, state: _Optional[bytes] = ...) -> None: ...
 
 class RestoreReply(_message.Message):
     __slots__ = ("empty", "error")
@@ -113,6 +185,20 @@ class RestoreReply(_message.Message):
     empty: _empty_pb2.Empty
     error: Error
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class RestoreAndRunRequest(_message.Message):
+    __slots__ = ("state",)
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    state: bytes
+    def __init__(self, state: _Optional[bytes] = ...) -> None: ...
+
+class RestoreAndRunReply(_message.Message):
+    __slots__ = ("time", "error")
+    TIME_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    time: _timestamp_pb2.Timestamp
+    error: Error
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class TerminateRequest(_message.Message):
     __slots__ = ()
@@ -190,11 +276,11 @@ class StepUntilReply(_message.Message):
     error: Error
     def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class StepUnboundedRequest(_message.Message):
+class RunRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
-class StepUnboundedReply(_message.Message):
+class RunReply(_message.Message):
     __slots__ = ("time", "error")
     TIME_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
@@ -207,135 +293,122 @@ class ListEventSourcesRequest(_message.Message):
     def __init__(self) -> None: ...
 
 class ListEventSourcesReply(_message.Message):
-    __slots__ = ("source_names", "empty", "error")
-    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("sources", "empty", "error")
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    source_names: _containers.RepeatedScalarFieldContainer[str]
+    sources: _containers.RepeatedCompositeFieldContainer[Path]
     empty: _empty_pb2.Empty
     error: Error
-    def __init__(self, source_names: _Optional[_Iterable[str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, sources: _Optional[_Iterable[_Union[Path, _Mapping]]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class GetEventSourceSchemasRequest(_message.Message):
-    __slots__ = ("source_names",)
-    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
-    source_names: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, source_names: _Optional[_Iterable[str]] = ...) -> None: ...
+    __slots__ = ("sources",)
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
+    sources: _containers.RepeatedCompositeFieldContainer[Path]
+    def __init__(self, sources: _Optional[_Iterable[_Union[Path, _Mapping]]] = ...) -> None: ...
 
 class GetEventSourceSchemasReply(_message.Message):
     __slots__ = ("schemas", "empty", "error")
-    class SchemasEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    schemas: _containers.ScalarMap[str, str]
+    schemas: _containers.RepeatedCompositeFieldContainer[EventSourceSchema]
     empty: _empty_pb2.Empty
     error: Error
-    def __init__(self, schemas: _Optional[_Mapping[str, str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, schemas: _Optional[_Iterable[_Union[EventSourceSchema, _Mapping]]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class ListQuerySourcesRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class ListQuerySourcesReply(_message.Message):
-    __slots__ = ("source_names", "empty", "error")
-    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("sources", "empty", "error")
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    source_names: _containers.RepeatedScalarFieldContainer[str]
+    sources: _containers.RepeatedCompositeFieldContainer[Path]
     empty: _empty_pb2.Empty
     error: Error
-    def __init__(self, source_names: _Optional[_Iterable[str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
-
-class QuerySchema(_message.Message):
-    __slots__ = ("request", "reply")
-    REQUEST_FIELD_NUMBER: _ClassVar[int]
-    REPLY_FIELD_NUMBER: _ClassVar[int]
-    request: str
-    reply: str
-    def __init__(self, request: _Optional[str] = ..., reply: _Optional[str] = ...) -> None: ...
+    def __init__(self, sources: _Optional[_Iterable[_Union[Path, _Mapping]]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class GetQuerySourceSchemasRequest(_message.Message):
-    __slots__ = ("source_names",)
-    SOURCE_NAMES_FIELD_NUMBER: _ClassVar[int]
-    source_names: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, source_names: _Optional[_Iterable[str]] = ...) -> None: ...
+    __slots__ = ("sources",)
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
+    sources: _containers.RepeatedCompositeFieldContainer[Path]
+    def __init__(self, sources: _Optional[_Iterable[_Union[Path, _Mapping]]] = ...) -> None: ...
 
 class GetQuerySourceSchemasReply(_message.Message):
     __slots__ = ("schemas", "empty", "error")
-    class SchemasEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: QuerySchema
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[QuerySchema, _Mapping]] = ...) -> None: ...
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    schemas: _containers.MessageMap[str, QuerySchema]
+    schemas: _containers.RepeatedCompositeFieldContainer[QuerySourceSchema]
     empty: _empty_pb2.Empty
     error: Error
-    def __init__(self, schemas: _Optional[_Mapping[str, QuerySchema]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, schemas: _Optional[_Iterable[_Union[QuerySourceSchema, _Mapping]]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class ListEventSinksRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class ListEventSinksReply(_message.Message):
-    __slots__ = ("sink_names", "empty", "error")
-    SINK_NAMES_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("sinks", "empty", "error")
+    SINKS_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    sink_names: _containers.RepeatedScalarFieldContainer[str]
+    sinks: _containers.RepeatedCompositeFieldContainer[Path]
     empty: _empty_pb2.Empty
     error: Error
-    def __init__(self, sink_names: _Optional[_Iterable[str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, sinks: _Optional[_Iterable[_Union[Path, _Mapping]]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class GetEventSinkSchemasRequest(_message.Message):
-    __slots__ = ("sink_names",)
-    SINK_NAMES_FIELD_NUMBER: _ClassVar[int]
-    sink_names: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, sink_names: _Optional[_Iterable[str]] = ...) -> None: ...
+    __slots__ = ("sinks",)
+    SINKS_FIELD_NUMBER: _ClassVar[int]
+    sinks: _containers.RepeatedCompositeFieldContainer[Path]
+    def __init__(self, sinks: _Optional[_Iterable[_Union[Path, _Mapping]]] = ...) -> None: ...
 
 class GetEventSinkSchemasReply(_message.Message):
     __slots__ = ("schemas", "empty", "error")
-    class SchemasEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     SCHEMAS_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    schemas: _containers.ScalarMap[str, str]
+    schemas: _containers.RepeatedCompositeFieldContainer[EventSinkSchema]
     empty: _empty_pb2.Empty
     error: Error
-    def __init__(self, schemas: _Optional[_Mapping[str, str]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, schemas: _Optional[_Iterable[_Union[EventSinkSchema, _Mapping]]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class InjectEventRequest(_message.Message):
+    __slots__ = ("source", "event")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    EVENT_FIELD_NUMBER: _ClassVar[int]
+    source: Path
+    event: bytes
+    def __init__(self, source: _Optional[_Union[Path, _Mapping]] = ..., event: _Optional[bytes] = ...) -> None: ...
+
+class InjectEventReply(_message.Message):
+    __slots__ = ("empty", "error")
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class ScheduleEventRequest(_message.Message):
-    __slots__ = ("time", "duration", "source_name", "event", "period", "with_key")
+    __slots__ = ("time", "duration", "source", "event", "period", "with_key")
     TIME_FIELD_NUMBER: _ClassVar[int]
     DURATION_FIELD_NUMBER: _ClassVar[int]
-    SOURCE_NAME_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
     EVENT_FIELD_NUMBER: _ClassVar[int]
     PERIOD_FIELD_NUMBER: _ClassVar[int]
     WITH_KEY_FIELD_NUMBER: _ClassVar[int]
     time: _timestamp_pb2.Timestamp
     duration: _duration_pb2.Duration
-    source_name: str
+    source: Path
     event: bytes
     period: _duration_pb2.Duration
     with_key: bool
-    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., source_name: _Optional[str] = ..., event: _Optional[bytes] = ..., period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., with_key: bool = ...) -> None: ...
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., source: _Optional[_Union[Path, _Mapping]] = ..., event: _Optional[bytes] = ..., period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., with_key: bool = ...) -> None: ...
 
 class ScheduleEventReply(_message.Message):
     __slots__ = ("empty", "key", "error")
@@ -362,12 +435,12 @@ class CancelEventReply(_message.Message):
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class ProcessEventRequest(_message.Message):
-    __slots__ = ("source_name", "event")
-    SOURCE_NAME_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("source", "event")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
     EVENT_FIELD_NUMBER: _ClassVar[int]
-    source_name: str
+    source: Path
     event: bytes
-    def __init__(self, source_name: _Optional[str] = ..., event: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, source: _Optional[_Union[Path, _Mapping]] = ..., event: _Optional[bytes] = ...) -> None: ...
 
 class ProcessEventReply(_message.Message):
     __slots__ = ("empty", "error")
@@ -378,12 +451,12 @@ class ProcessEventReply(_message.Message):
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class ProcessQueryRequest(_message.Message):
-    __slots__ = ("source_name", "request")
-    SOURCE_NAME_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("source", "request")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
     REQUEST_FIELD_NUMBER: _ClassVar[int]
-    source_name: str
+    source: Path
     request: bytes
-    def __init__(self, source_name: _Optional[str] = ..., request: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, source: _Optional[_Union[Path, _Mapping]] = ..., request: _Optional[bytes] = ...) -> None: ...
 
 class ProcessQueryReply(_message.Message):
     __slots__ = ("replies", "empty", "error")
@@ -395,13 +468,13 @@ class ProcessQueryReply(_message.Message):
     error: Error
     def __init__(self, replies: _Optional[_Iterable[bytes]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class ReadEventsRequest(_message.Message):
-    __slots__ = ("sink_name",)
-    SINK_NAME_FIELD_NUMBER: _ClassVar[int]
-    sink_name: str
-    def __init__(self, sink_name: _Optional[str] = ...) -> None: ...
+class TryReadEventsRequest(_message.Message):
+    __slots__ = ("sink",)
+    SINK_FIELD_NUMBER: _ClassVar[int]
+    sink: Path
+    def __init__(self, sink: _Optional[_Union[Path, _Mapping]] = ...) -> None: ...
 
-class ReadEventsReply(_message.Message):
+class TryReadEventsReply(_message.Message):
     __slots__ = ("events", "empty", "error")
     EVENTS_FIELD_NUMBER: _ClassVar[int]
     EMPTY_FIELD_NUMBER: _ClassVar[int]
@@ -411,15 +484,15 @@ class ReadEventsReply(_message.Message):
     error: Error
     def __init__(self, events: _Optional[_Iterable[bytes]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class AwaitEventRequest(_message.Message):
-    __slots__ = ("sink_name", "timeout")
-    SINK_NAME_FIELD_NUMBER: _ClassVar[int]
+class ReadEventRequest(_message.Message):
+    __slots__ = ("sink", "timeout")
+    SINK_FIELD_NUMBER: _ClassVar[int]
     TIMEOUT_FIELD_NUMBER: _ClassVar[int]
-    sink_name: str
+    sink: Path
     timeout: _duration_pb2.Duration
-    def __init__(self, sink_name: _Optional[str] = ..., timeout: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    def __init__(self, sink: _Optional[_Union[Path, _Mapping]] = ..., timeout: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
-class AwaitEventReply(_message.Message):
+class ReadEventReply(_message.Message):
     __slots__ = ("event", "error")
     EVENT_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
@@ -427,13 +500,13 @@ class AwaitEventReply(_message.Message):
     error: Error
     def __init__(self, event: _Optional[bytes] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class OpenSinkRequest(_message.Message):
-    __slots__ = ("sink_name",)
-    SINK_NAME_FIELD_NUMBER: _ClassVar[int]
-    sink_name: str
-    def __init__(self, sink_name: _Optional[str] = ...) -> None: ...
+class EnableSinkRequest(_message.Message):
+    __slots__ = ("sink",)
+    SINK_FIELD_NUMBER: _ClassVar[int]
+    sink: Path
+    def __init__(self, sink: _Optional[_Union[Path, _Mapping]] = ...) -> None: ...
 
-class OpenSinkReply(_message.Message):
+class EnableSinkReply(_message.Message):
     __slots__ = ("empty", "error")
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
@@ -441,50 +514,16 @@ class OpenSinkReply(_message.Message):
     error: Error
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class CloseSinkRequest(_message.Message):
-    __slots__ = ("sink_name",)
-    SINK_NAME_FIELD_NUMBER: _ClassVar[int]
-    sink_name: str
-    def __init__(self, sink_name: _Optional[str] = ...) -> None: ...
+class DisableSinkRequest(_message.Message):
+    __slots__ = ("sink",)
+    SINK_FIELD_NUMBER: _ClassVar[int]
+    sink: Path
+    def __init__(self, sink: _Optional[_Union[Path, _Mapping]] = ...) -> None: ...
 
-class CloseSinkReply(_message.Message):
+class DisableSinkReply(_message.Message):
     __slots__ = ("empty", "error")
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
     empty: _empty_pb2.Empty
     error: Error
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
-
-class AnyRequest(_message.Message):
-    __slots__ = ("init_request", "halt_request", "time_request", "step_request", "step_until_request", "schedule_event_request", "cancel_event_request", "process_event_request", "process_query_request", "read_events_request", "open_sink_request", "close_sink_request", "await_event_request", "step_unbounded_request", "terminate_request")
-    INIT_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    HALT_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    TIME_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    STEP_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    STEP_UNTIL_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    SCHEDULE_EVENT_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    CANCEL_EVENT_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    PROCESS_EVENT_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    PROCESS_QUERY_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    READ_EVENTS_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    OPEN_SINK_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    CLOSE_SINK_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    AWAIT_EVENT_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    STEP_UNBOUNDED_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    TERMINATE_REQUEST_FIELD_NUMBER: _ClassVar[int]
-    init_request: InitRequest
-    halt_request: HaltRequest
-    time_request: TimeRequest
-    step_request: StepRequest
-    step_until_request: StepUntilRequest
-    schedule_event_request: ScheduleEventRequest
-    cancel_event_request: CancelEventRequest
-    process_event_request: ProcessEventRequest
-    process_query_request: ProcessQueryRequest
-    read_events_request: ReadEventsRequest
-    open_sink_request: OpenSinkRequest
-    close_sink_request: CloseSinkRequest
-    await_event_request: AwaitEventRequest
-    step_unbounded_request: StepUnboundedRequest
-    terminate_request: TerminateRequest
-    def __init__(self, init_request: _Optional[_Union[InitRequest, _Mapping]] = ..., halt_request: _Optional[_Union[HaltRequest, _Mapping]] = ..., time_request: _Optional[_Union[TimeRequest, _Mapping]] = ..., step_request: _Optional[_Union[StepRequest, _Mapping]] = ..., step_until_request: _Optional[_Union[StepUntilRequest, _Mapping]] = ..., schedule_event_request: _Optional[_Union[ScheduleEventRequest, _Mapping]] = ..., cancel_event_request: _Optional[_Union[CancelEventRequest, _Mapping]] = ..., process_event_request: _Optional[_Union[ProcessEventRequest, _Mapping]] = ..., process_query_request: _Optional[_Union[ProcessQueryRequest, _Mapping]] = ..., read_events_request: _Optional[_Union[ReadEventsRequest, _Mapping]] = ..., open_sink_request: _Optional[_Union[OpenSinkRequest, _Mapping]] = ..., close_sink_request: _Optional[_Union[CloseSinkRequest, _Mapping]] = ..., await_event_request: _Optional[_Union[AwaitEventRequest, _Mapping]] = ..., step_unbounded_request: _Optional[_Union[StepUnboundedRequest, _Mapping]] = ..., terminate_request: _Optional[_Union[TerminateRequest, _Mapping]] = ...) -> None: ...

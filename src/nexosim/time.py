@@ -83,6 +83,8 @@ a scalar.
 
 from __future__ import annotations
 
+__all__ = ["Duration", "MonotonicTime"]
+
 import copy
 import datetime
 import time
@@ -393,6 +395,9 @@ class MonotonicTime:
             in time defined by `secs`.
     """
 
+    EPOCH: typing.ClassVar[MonotonicTime]
+    """Reference epoch for MonotonicTime - 1970-01-01 00:00:00 TAI."""
+
     secs: int = attrs.field(validator=attrs.validators.instance_of(int), default=0)
     nanos: int = attrs.field(
         validator=[attrs.validators.instance_of(int), _assert_isnanos],
@@ -632,3 +637,6 @@ class MonotonicTime:
 
     def __str__(self) -> str:
         return "{}".format(self)
+
+
+MonotonicTime.EPOCH = MonotonicTime(secs=0, nanos=0)

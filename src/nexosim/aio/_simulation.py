@@ -1,4 +1,5 @@
 import inspect
+import json
 import typing
 
 import cbor2
@@ -71,42 +72,116 @@ class Simulation:
         """Closes the gRPC channel."""
         await self._channel.close()
 
-    async def start(
-        self, cfg: typing.Any = None, time: typing.Optional[MonotonicTime] = None
-    ) -> None:
+    async def build(self, cfg: typing.Any = None) -> None:
         """
-        Creates a simulation bench.
-
-        If a simulation bench is already running, it is replaced by the newly
-        initialized bench. In such case, events that have not yet been retrieved
-        from the sinks will be lost and the sinks are reset to their default
-        open/close state.
+        Builds a simulation bench.
 
         Args:
             cfg: A bench configuration object which can be
                 serialized/deserialized to the expected bench configuration
-                type. The `None` default is appropriate if the bench initializer
-                expects the Rust type `()` or accepts an `Option::None`.
-            time: The time at which the simulation will be initialized. If
-                `None` the simulation is initialized at 1970-01-01 00:00:00.
+                type. The `None` default is appropriate if the bench builder
+                expects the Rust type `()`, accepts an `Option::None`.
+
+            Raises:
+                exceptions.SimulationError: One of the exceptions derived from
+                    [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                    raised, such as:
+
+                    - [`BenchPanicError`][nexosim.exceptions.BenchPanicError]
+                    - [`BenchError`][nexosim.exceptions.BenchError]
+                    - [`DuplicateEventSourceError`][nexosim.exceptions.DuplicateEventSourceError]
+                    - [`DuplicateQuerySourceError`][nexosim.exceptions.DuplicateQuerySourceError]
+                    - [`DuplicateEventSinkError`][nexosim.exceptions.DuplicateEventSinkError]
+                    - [`InvalidBenchConfigError`][nexosim.exceptions.InvalidBenchConfigError]
+        """
+        request = simulation_pb2.BuildRequest(cfg=cbor2_converter.dumps(cfg))
+        reply = await self._stub.Build(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+    async def init(self, time: MonotonicTime = MonotonicTime.EPOCH) -> None:
+        """
+        Initializes a simulation bench.
+
+        The simulation must be built using the [`Simulation.build`][nexosim.Simulation.build]
+        method before it can be initialized.
+
+        If a simulation bench is already running, it is replaced by the newly
+        initialized bench. In such case, events that have not yet been retrieved
+        from the sinks will be lost and the sinks are reset to their default
+        enabled/disabled state.
+
+        Args:
+            time: The time at which the simulation will be initialized.
 
         Raises:
             exceptions.SimulationError: One of the exceptions derived from
                 [`SimulationError`][nexosim.exceptions.SimulationError] may be
                 raised, such as:
 
-                - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
         """
-        time = time or MonotonicTime.create()
         request = simulation_pb2.InitRequest(
-            cfg=cbor2_converter.dumps(cfg),
             time=PbTimestamp(seconds=time.secs, nanos=time.nanos),
         )
         reply = await self._stub.Init(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
+
+    async def init_and_run(
+        self, time: MonotonicTime = MonotonicTime.EPOCH
+    ) -> MonotonicTime:
+        """
+        Initializes and runs a simulation.
+
+        This is functionally equivalent to calling [`Simulation.init`][nexosim.aio.Simulation.init]
+        followed by [`Simulation.run`][nexosim.aio.Simulation.run], but is
+        implemented as a single gRPC request. This method should be preferred in
+        latency-sensitive simulations to mitigate the risk of loss of
+        synchronization between the invocations of [`Simulation.init`][nexosim.aio.Simulation.init]
+        and [`Simulation.run`][nexosim.aio.Simulation.run].
+
+        The simulation must be built using the [`Simulation.build`][nexosim.aio.Simulation.build]
+        method before it can be initialized.
+
+        If a simulation bench is already running, it is replaced by the newly
+        initialized bench in the restored state. In such case, events that have
+        not yet been retrieved from the sinks will be lost and the sinks are
+        reset to their default enabled/disabled state.
+
+        Args:
+            time: The time at which the simulation will be initialized.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+                - [`SimulationTerminatedError`][nexosim.exceptions.SimulationTerminatedError]
+                - [`SimulationDeadlockError`][nexosim.exceptions.SimulationDeadlockError]
+                - [`SimulationMessageLossError`][nexosim.exceptions.SimulationMessageLossError]
+                - [`SimulationNoRecipientError`][nexosim.exceptions.SimulationNoRecipientError]
+                - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
+                - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
+        """
+
+        request = simulation_pb2.InitAndRunRequest(
+            time=PbTimestamp(seconds=time.secs, nanos=time.nanos),
+        )
+        reply = await self._stub.InitAndRun(request)  # type: ignore
+
+        if reply.HasField("time"):
+            return MonotonicTime(reply.time.seconds, reply.time.nanos)
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        raise exceptions.UnexpectedError("unexpected response")
 
     async def terminate(self) -> None:
         """
@@ -121,6 +196,20 @@ class Simulation:
     async def halt(self) -> None:
         """
         Requests the simulation to stop at the earliest opportunity.
+
+        If a stepping method such as
+        [`Simulation.step`][nexosim.aio.Simulation.step] or
+        [`Simulation.run`][nexosim.aio.Simulation.run] is concurrently
+        being executed, this will cause such method to raise a
+        [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        before it steps to next scheduler deadline or simulation tick.
+
+        Otherwise, this will cause the next call to a `Simulation.step_*` or
+        `Simulation.process_*` method to return immediately with
+        [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError].
+
+        Once halted, the simulation can be resumed with another stepping method
+        or a `Simulation.process_*` call.
 
         Note that the request will only become effective on the next attempt by
         the simulator to advance the simulation time.
@@ -137,6 +226,114 @@ class Simulation:
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
+
+    async def save(self) -> bytes:
+        """
+        Saves and returns the current simulation state in a serialized form.
+
+        Returns:
+            The serialized simulation state.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+                - [`SaveError`][nexosim.exceptions.SaveError]
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+
+        """
+        request = simulation_pb2.SaveRequest()
+        reply = await self._stub.Save(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return reply.state
+
+    async def restore(self, state: bytes) -> None:
+        """
+        Restores the simulation from a serialized state.
+
+        The simulation must be built using the [`Simulation.build`][nexosim.aio.Simulation.build]
+        method before it can be initialized.
+
+        If a simulation bench is already running, it is replaced by the newly
+        initialized bench in the restored state. In such case, events that have
+        not yet been retrieved from the sinks will be lost and the sinks are
+        reset to their default enabled/disabled state.
+
+        Args:
+            state: The serialized state of the bench.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+                - [`RestoreError`][nexosim.exceptions.RestoreError]
+
+        """
+        request = simulation_pb2.RestoreRequest(state=state)
+        reply = await self._stub.Restore(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+    async def restore_and_run(self, state: bytes) -> MonotonicTime:
+        """
+        Restores the simulation from a serialized state and runs the simulation.
+
+        This is functionally equivalent to calling
+        [`Simulation.restore`][nexosim.aio.Simulation.restore] followed by
+        [`Simulation.run`][nexosim.aio.Simulation.run], but is
+        implemented as a single gRPC request. This method should be preferred in
+        latency-sensitive simulations to mitigate the risk of loss of
+        synchronization between the invocations of
+        [`Simulation.restore`][nexosim.aio.Simulation.restore] and
+        [`Simulation.run`][nexosim.aio.Simulation.run].
+
+        The simulation must be built using the [`Simulation.build`][nexosim.aio.Simulation.build]
+        method before it can be initialized.
+
+        If a simulation bench is already running, it is replaced by the newly
+        initialized bench in the restored state. In such case, events that have
+        not yet been retrieved from the sinks will be lost and the sinks are
+        reset to their default enabled/disabled state.
+
+        Args:
+            state: The serialized state of the bench.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+                - [`RestoreError`][nexosim.exceptions.RestoreError]
+                - [`SimulationTerminatedError`][nexosim.exceptions.SimulationTerminatedError]
+                - [`SimulationDeadlockError`][nexosim.exceptions.SimulationDeadlockError]
+                - [`SimulationMessageLossError`][nexosim.exceptions.SimulationMessageLossError]
+                - [`SimulationNoRecipientError`][nexosim.exceptions.SimulationNoRecipientError]
+                - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
+                - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
+        """
+
+        request = simulation_pb2.RestoreAndRunRequest(state=state)
+        reply = await self._stub.RestoreAndRun(request)  # type: ignore
+
+        if reply.HasField("time"):
+            return MonotonicTime(reply.time.seconds, reply.time.nanos)
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        raise exceptions.UnexpectedError("unexpected response")
 
     async def time(self) -> MonotonicTime:
         """Returns the current simulation time.
@@ -187,7 +384,6 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
-                - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
         """
 
         request = simulation_pb2.StepRequest()
@@ -200,9 +396,9 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
-    async def step_unbounded(self) -> MonotonicTime:
+    async def run(self) -> MonotonicTime:
         """Iteratively advances the simulation time until the simulation end, as
-        if by calling [`step()`][nexosim.Simulation.step] repeatedly.
+        if by calling [`step()`][nexosim.aio.Simulation.step] repeatedly.
 
         The request will complete when all scheduled events are processed or
         the simulation is halted.
@@ -226,12 +422,12 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
-                - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
 
         """
 
-        request = simulation_pb2.StepUnboundedRequest()
-        reply = await self._stub.StepUnbounded(request)  # type: ignore
+        request = simulation_pb2.RunRequest()
+        reply = await self._stub.Run(request)  # type: ignore
+
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -242,7 +438,7 @@ class Simulation:
 
     async def step_until(self, deadline: MonotonicTime | Duration) -> MonotonicTime:
         """Iteratively advances the simulation time until the specified
-        deadline, as if by calling [Simulation.step][nexosim.Simulation.step]
+        deadline, as if by calling [Simulation.step][nexosim.aio.Simulation.step]
         repeatedly.
 
         This method blocks other `step*` and `process*` requests until all events
@@ -273,7 +469,6 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationOutOfSyncError`][nexosim.exceptions.SimulationOutOfSyncError]
-                - [`SimulationHaltedError`][nexosim.exceptions.SimulationHaltedError]
         """
 
         kwargs = {}
@@ -294,11 +489,261 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
+    async def list_event_sources(self) -> list[list[str]]:
+        """Lists available event sources.
+
+        This method requires the simulation bench to be built with the
+        [`Simulation.build`][nexosim.aio.Simulation.build] method beforehand, but
+        can be used without initialization.
+
+        Returns:
+            A list of event source names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+        """
+        request = simulation_pb2.ListEventSourcesRequest()
+        reply = await self._stub.ListEventSources(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return [list(path.segments) for path in reply.sources]
+
+    async def get_event_source_schemas(
+        self, sources: typing.Iterable[str | typing.Iterable[str]]
+    ) -> dict[tuple[str], dict]:
+        """Retrieves the schema of the event sources specified in `sources`.
+
+        This method requires the simulation bench to be built with the
+        [`Simulation.build`][nexosim.aio.Simulation.build] method beforehand, but
+        can be used without initialization.
+
+        Args:
+            source_names: The names of the event sources.
+
+        Returns:
+            A mapping of event source schemas to their names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+        """
+        request = simulation_pb2.GetEventSourceSchemasRequest(
+            sources=[
+                simulation_pb2.Path(segments=path)
+                if not isinstance(path, str)
+                else simulation_pb2.Path(segments=(path,))
+                for path in sources
+            ]
+        )
+        reply = await self._stub.GetEventSourceSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return {
+            tuple(schema.source.segments): json.loads(schema.event)
+            for schema in reply.schemas
+            if schema.event
+        }  # type: ignore
+
+    async def list_query_sources(self) -> list[list[str]]:
+        """Lists available query sources.
+
+        This method requires the simulation bench to be built with the
+        [`Simulation.build`][nexosim.aio.Simulation.build] method beforehand, but
+        can be used without initialization.
+
+        Returns:
+            A list of query source names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+        """
+        request = simulation_pb2.ListQuerySourcesRequest()
+        reply = await self._stub.ListQuerySources(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return [list(path.segments) for path in reply.sources]
+
+    async def get_query_source_schemas(
+        self, sources: typing.Iterable[str | typing.Iterable[str]]
+    ) -> dict[str, dict]:
+        """Retrieves the schema of the query sources specified in `sources`.
+
+        This method requires the simulation bench to be built with the
+        [`Simulation.build`][nexosim.aio.Simulation.build] method beforehand, but
+        can be used without initialization.
+
+        Args:
+            source_names: The names of the query sources.
+
+        Returns:
+            A mapping of query source schemas to their names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+        """
+        request = simulation_pb2.GetQuerySourceSchemasRequest(
+            sources=[
+                simulation_pb2.Path(segments=path)
+                if not isinstance(path, str)
+                else simulation_pb2.Path(segments=(path,))
+                for path in sources
+            ]
+        )
+        reply = await self._stub.GetQuerySourceSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return {
+            tuple(schema.source.segments): {
+                "request": json.loads(schema.request),
+                "reply": json.loads(schema.reply),
+            }
+            for schema in reply.schemas
+        }  # type: ignore
+
+    async def list_event_sinks(self) -> list[list[str]]:
+        """Lists available event sinks.
+
+        This method requires the simulation bench to be built with the
+        [`Simulation.build`][nexosim.aio.Simulation.build] method beforehand, but
+        can be used without initialization.
+
+        Returns:
+            A list of event sink names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+        """
+        request = simulation_pb2.ListEventSinksRequest()
+        reply = await self._stub.ListEventSinks(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return [list(path.segments) for path in reply.sinks]
+
+    async def get_event_sink_schemas(
+        self, sinks: typing.Iterable[str | typing.Iterable[str]]
+    ):
+        #  -> dict[str, dict]:
+        """Retrieves the schema of the event sinks specified in `sinks`.
+
+        This method requires the simulation bench to be built with the
+        [`Simulation.build`][nexosim.aio.Simulation.build] method beforehand, but
+        can be used without initialization.
+
+        Args:
+            sink_names: The names of the event sinks.
+
+        Returns:
+            A mapping of event sinks schemas to their names.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
+        """
+        request = simulation_pb2.GetEventSinkSchemasRequest(
+            sinks=[
+                simulation_pb2.Path(segments=path)
+                if not isinstance(path, str)
+                else simulation_pb2.Path(segments=(path,))
+                for path in sinks
+            ]
+        )
+        reply = await self._stub.GetEventSinkSchemas(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        return {
+            tuple(schema.sink.segments): json.loads(schema.event)
+            for schema in reply.schemas
+            if schema.event
+        }  # type: ignore
+
+    async def inject_event(
+        self, source: str | typing.Iterable[str], event: typing.Any = None
+    ) -> None:
+        """Injects an event to be processed as soon as possible.
+
+        If a stepping method such as [Simulation.step][nexosim.aio.Simulation.step]
+        or [Simulation.run][nexosim.aio.Simulation.run] is executed concurrently,
+        the event will be processed at the deadline set by the scheduler event
+        or simulation tick that directly follows the one that is being stepped
+        into.
+
+        If the event is injected while the simulation is at rest, the event will
+        be processed at the lapse of the next simulation step (next scheduler
+        event or simulation tick).
+
+
+        Args:
+            source: The path of the event source.
+
+            event: an object that can be serialized/deserialized to the expected
+                event type. The `None` default may be used if the Rust event
+                type is `()` or `Option`.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
+                - [`EventSourceNotFoundError`][nexosim.exceptions.EventSourceNotFoundError]
+                - [`InvalidEventTypeError`][nexosim.exceptions.InvalidEventTypeError]
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+                - [`SimulationTerminatedError`][nexosim.exceptions.SimulationTerminatedError]
+                - [`SimulationDeadlockError`][nexosim.exceptions.SimulationDeadlockError]
+                - [`SimulationMessageLossError`][nexosim.exceptions.SimulationMessageLossError]
+                - [`SimulationNoRecipientError`][nexosim.exceptions.SimulationNoRecipientError]
+                - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
+                - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
+        """
+        source = source if not isinstance(source, str) else (source,)
+        request = simulation_pb2.InjectEventRequest(
+            source=simulation_pb2.Path(segments=source),
+            event=cbor2_converter.dumps(event),
+        )
+        reply = await self._stub.InjectEvent(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
     @typing.overload
     async def schedule_event(
         self,
         deadline: MonotonicTime | Duration,
-        source_name: str,
+        source: str | typing.Iterable[str],
         event: object = None,
         period: None | Duration = None,
         with_key: typing.Literal[False] = False,
@@ -308,7 +753,7 @@ class Simulation:
     async def schedule_event(
         self,
         deadline: MonotonicTime | Duration,
-        source_name: str,
+        source: str | typing.Iterable[str],
         event: object,
         period: None | Duration,
         with_key: typing.Literal[True],
@@ -317,7 +762,7 @@ class Simulation:
     async def schedule_event(
         self,
         deadline: MonotonicTime | Duration,
-        source_name: str,
+        source: str | typing.Iterable[str],
         event: object = None,
         period: None | Duration = None,
         with_key: bool = False,
@@ -332,7 +777,7 @@ class Simulation:
                 set in the future of the current simulation time or as a strictly
                 positive duration relative to the current simulation time.
 
-            source_name: The name of the event source.
+            source: The path of the event source.
 
             event: an object that can be serialized/deserialized to the expected
                 event type. The `None` default may be used if the Rust event
@@ -346,7 +791,7 @@ class Simulation:
 
             with_key: Optionally requests an event key to be returned, which may
                 be used to cancel the event with
-                [`Simulation.cancel_event`][nexosim.Simulation.cancel_event].
+                [`Simulation.cancel_event`][nexosim.aio.Simulation.cancel_event].
 
         Returns:
             If `with_key` is set then a key for the scheduled event is returned.
@@ -358,7 +803,8 @@ class Simulation:
 
                 - [`InvalidDeadlineError`][nexosim.exceptions.InvalidDeadlineError]
                 - [`InvalidPeriodError`][nexosim.exceptions.InvalidPeriodError]
-                - [`SourceNotFoundError`][nexosim.exceptions.SourceNotFoundError]
+                - [`EventSourceNotFoundError`][nexosim.exceptions.EventSourceNotFoundError]
+                - [`InvalidEventTypeError`][nexosim.exceptions.InvalidEventTypeError]
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
@@ -370,7 +816,8 @@ class Simulation:
         else:
             kwargs["duration"] = PbDuration(seconds=deadline.secs, nanos=deadline.nanos)
 
-        kwargs["source_name"] = source_name
+        source = source if not isinstance(source, str) else (source,)
+        kwargs["source"] = simulation_pb2.Path(segments=source)
 
         if inspect.isclass(type(event)):
             event_bytes = cbor2_converter.dumps(event)
@@ -383,13 +830,13 @@ class Simulation:
 
         kwargs["with_key"] = with_key
 
-        request = simulation_pb2.ScheduleEventRequest(**kwargs)  # type: ignore
+        request = simulation_pb2.ScheduleEventRequest(**kwargs)
 
         reply = await self._stub.ScheduleEvent(request)  # type: ignore
 
         if reply.HasField("key"):
             key = EventKey()
-            key._key = reply.key  # type: ignore
+            key._key = reply.key
 
             return key
 
@@ -417,14 +864,16 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def process_event(self, source_name: str, event: typing.Any = None) -> None:
+    async def process_event(
+        self, source: str | typing.Iterable[str], event: typing.Any = None
+    ) -> None:
         """Broadcasts an event from an event source immediately, blocking
         other `step*` and `process*` requests until completion.
 
         Simulation time remains unchanged.
 
         Args:
-            source_name: The name of the event source.
+            source: The path of the event source.
 
             event: an object that can be serialized/deserialized to the expected
                 event type. The `None` default may be used if the Rust event
@@ -436,7 +885,8 @@ class Simulation:
                 raised, such as:
 
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
-                - [`SourceNotFoundError`][nexosim.exceptions.SourceNotFoundError]
+                - [`EventSourceNotFoundError`][nexosim.exceptions.EventSourceNotFoundError]
+                - [`InvalidEventTypeError`][nexosim.exceptions.InvalidEventTypeError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
                 - [`SimulationTerminatedError`][nexosim.exceptions.SimulationTerminatedError]
                 - [`SimulationDeadlockError`][nexosim.exceptions.SimulationDeadlockError]
@@ -445,9 +895,10 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
         """
-
+        source = source if not isinstance(source, str) else (source,)
         request = simulation_pb2.ProcessEventRequest(
-            source_name=source_name, event=cbor2_converter.dumps(event)
+            source=simulation_pb2.Path(segments=source),
+            event=cbor2_converter.dumps(event),
         )
         reply = await self._stub.ProcessEvent(request)  # type: ignore
         if reply.HasField("error"):
@@ -455,7 +906,7 @@ class Simulation:
 
     async def process_query(
         self,
-        source_name: str,
+        source: str | typing.Iterable[str],
         request: typing.Any = None,
         reply_type: TypeForm[T] = object,
     ) -> list[T]:
@@ -465,7 +916,7 @@ class Simulation:
         Simulation time remains unchanged.
 
         Args:
-            source_name: The name of the query source.
+            source: The path of the query source.
 
             request: An object that can be serialized/deserialized to the expected
                 request type. The `None` default may be used if the Rust request
@@ -485,7 +936,8 @@ class Simulation:
                 raised, such as:
 
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
-                - [`SourceNotFoundError`][nexosim.exceptions.SourceNotFoundError]
+                - [`QuerySourceNotFoundError`][nexosim.exceptions.QuerySourceNotFoundError]
+                - [`InvalidQueryTypeError`][nexosim.exceptions.InvalidQueryTypeError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
                 - [`SimulationTerminatedError`][nexosim.exceptions.SimulationTerminatedError]
                 - [`SimulationDeadlockError`][nexosim.exceptions.SimulationDeadlockError]
@@ -495,8 +947,10 @@ class Simulation:
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
                 - [`SimulationBadQueryError`][nexosim.exceptions.SimulationBadQueryError]
         """
+        source = source if not isinstance(source, str) else (source,)
         request = simulation_pb2.ProcessQueryRequest(
-            source_name=source_name, request=cbor2_converter.dumps(request)
+            source=simulation_pb2.Path(segments=source),
+            request=cbor2_converter.dumps(request),
         )
         reply = await self._stub.ProcessQuery(request)  # type: ignore
 
@@ -508,13 +962,13 @@ class Simulation:
         else:
             return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
 
-    async def read_events(
-        self, sink_name: str, event_type: TypeForm[T] = object
+    async def try_read_events(
+        self, sink: str | typing.Iterable[str], event_type: TypeForm[T] = object
     ) -> list[T]:
         """Reads all events from an event sink.
 
         Args:
-            sink_name: The name of the event sink.
+            sink: The path of the event sink.
 
             event_type: The Python type to which events should be mapped. If
                 left unspecified, events are mapped to their canonical
@@ -531,11 +985,17 @@ class Simulation:
 
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
                 - [`SinkNotFoundError`][nexosim.exceptions.SinkNotFoundError]
+                - [`SinkTerminatedError`][nexosim.exceptions.SinkTerminatedError]
+                - [`SinkReadRaceError`][nexosim.exceptions.SinkReadRaceError]
+                - [`SinkReadTimeoutError`][nexosim.exceptions.SinkReadTimeoutError]
+                - [`InvalidEventTypeError`][nexosim.exceptions.InvalidEventTypeError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
-
-        request = simulation_pb2.ReadEventsRequest(sink_name=sink_name)
-        reply = await self._stub.ReadEvents(request)  # type: ignore
+        sink = sink if not isinstance(sink, str) else (sink,)
+        request = simulation_pb2.TryReadEventsRequest(
+            sink=simulation_pb2.Path(segments=sink)
+        )
+        reply = await self._stub.TryReadEvents(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -545,15 +1005,18 @@ class Simulation:
         else:
             return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
 
-    async def await_event(
-        self, sink_name: str, timeout: Duration, event_type: TypeForm[T] = object
+    async def read_event(
+        self,
+        sink: str | typing.Iterable[str],
+        timeout: Duration,
+        event_type: TypeForm[T] = object,
     ) -> T:
         """Waits for the next event from an event sink.
 
         The call is blocking.
 
         Args:
-            sink_name: The name of the event sink.
+            sink: The path of the event sink.
 
             event_type: The Python type to which events should be mapped. If
                 left unspecified, events are mapped to their canonical
@@ -570,14 +1033,19 @@ class Simulation:
 
                 - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
                 - [`SinkNotFoundError`][nexosim.exceptions.SinkNotFoundError]
+                - [`SinkTerminatedError`][nexosim.exceptions.SinkTerminatedError]
+                - [`SinkReadRaceError`][nexosim.exceptions.SinkReadRaceError]
+                - [`SinkReadTimeoutError`][nexosim.exceptions.SinkReadTimeoutError]
+                - [`InvalidEventTypeError`][nexosim.exceptions.InvalidEventTypeError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
+        sink = sink if not isinstance(sink, str) else (sink,)
 
-        request = simulation_pb2.AwaitEventRequest(
-            sink_name=sink_name,
+        request = simulation_pb2.ReadEventRequest(
+            sink=simulation_pb2.Path(segments=sink),
             timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos),
         )
-        reply = await self._stub.AwaitEvent(request)  # type: ignore
+        reply = await self._stub.ReadEvent(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -587,14 +1055,14 @@ class Simulation:
         else:
             return cbor2_converter.loads(reply.event, event_type)  # type: ignore
 
-    async def open_sink(self, sink_name: str) -> None:
+    async def enable_sink(self, sink: str | typing.Iterable[str]) -> None:
         """Enables the reception of new events by the specified sink.
 
-        Note that the initial state of a sink may be either `open` or `closed`
-        depending on the bench initializer.
+        Note that the initial state of a sink may be either `enabled`
+        or `disabled` depending on the bench initializer.
 
         Args:
-            sink_name: The name of the event sink.
+            sink: The path of the event sink.
 
         Raises:
             exceptions.SimulationError: One of the exceptions derived from
@@ -602,22 +1070,27 @@ class Simulation:
                 raised, such as:
 
                 - [`SinkNotFoundError`][nexosim.exceptions.SinkNotFoundError]
+                - [`SinkReadRaceError`][nexosim.exceptions.SinkReadRaceError]
+                - [`MissingArgumentError`][nexosim.exceptions.MissingArgumentError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
-        request = simulation_pb2.OpenSinkRequest(sink_name=sink_name)
-        reply = await self._stub.OpenSink(request)  # type: ignore
+        sink = sink if not isinstance(sink, str) else (sink,)
+        request = simulation_pb2.EnableSinkRequest(
+            sink=simulation_pb2.Path(segments=sink)
+        )
+        reply = await self._stub.EnableSink(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def close_sink(self, sink_name: str) -> None:
+    async def disable_sink(self, sink: str | typing.Iterable[str]) -> None:
         """Disables the reception of new events by the specified sink.
 
-        Note that the initial state of a sink may be either `open` or `closed`
-        depending on the bench initializer.
+        Note that the initial state of a sink may be either `enabled`
+        or `disabled` depending on the bench initializer.
 
         Args:
-            sink_name: The name of the event sink.
+            sink: The path of the event sink.
 
         Raises:
             exceptions.SimulationError: One of the exceptions derived from
@@ -625,11 +1098,15 @@ class Simulation:
                 raised, such as:
 
                 - [`SinkNotFoundError`][nexosim.exceptions.SinkNotFoundError]
+                - [`SinkReadRaceError`][nexosim.exceptions.SinkReadRaceError]
+                - [`MissingArgumentError`][nexosim.exceptions.MissingArgumentError]
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
-
-        request = simulation_pb2.CloseSinkRequest(sink_name=sink_name)
-        reply = await self._stub.CloseSink(request)  # type: ignore
+        sink = sink if not isinstance(sink, str) else (sink,)
+        request = simulation_pb2.DisableSinkRequest(
+            sink=simulation_pb2.Path(segments=sink)
+        )
+        reply = await self._stub.DisableSink(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)

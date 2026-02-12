@@ -1,6 +1,6 @@
+use nexosim::model::Model;
 use nexosim::ports::Output;
 use nexosim::Message;
-use nexosim::Model;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Message)]
