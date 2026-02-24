@@ -32,50 +32,41 @@ The latest documentation and the user guide can be found [here](https://nexosim-
 Given a server implementation:
 <!-- example server start -->
 ```rust
-use nexosim::model::Model;
-use nexosim::ports::{EventSource, EventBuffer, Output};
-use nexosim::registry::EndpointRegistry;
-use nexosim::simulation::{Mailbox, SimInit, Simulation, SimulationError};
-use nexosim::time::MonotonicTime;
-use nexosim::server;
+use std::error::Error;
 
-#[derive(Default)]
+use nexosim::model::Model;
+use nexosim::ports::{EventSource, Output, SinkState, event_queue_endpoint};
+use nexosim::server;
+use nexosim::simulation::{Mailbox, SimInit};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Default)]
 pub(crate) struct AddOne {
-    pub(crate) output: Output<u16>
+    pub(crate) output: Output<u16>,
 }
 
+#[Model]
 impl AddOne {
     pub async fn input(&mut self, value: u16) {
         self.output.send(value + 1).await;
     }
 }
 
-impl Model for AddOne {}
-
-fn bench(_cfg: ()) -> Result<(Simulation, EndpointRegistry), SimulationError> {
+fn bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
     let mut model = AddOne::default();
-
     let model_mbox = Mailbox::new();
-    let model_addr = model_mbox.address();
 
-    let mut registry = EndpointRegistry::new();
+    let mut bench = SimInit::new();
 
-    let output = EventBuffer::new();
-    model.output.connect_sink(&output);
-    registry.add_event_sink(output, "add_1_output").unwrap();
+    let output = event_queue_endpoint(&mut bench, SinkState::Enabled, "add_1_output")?;
+    model.output.connect_sink(output);
 
-    let mut input = EventSource::new();
-    input.connect(AddOne::input, &model_addr);
-    registry.add_event_source(input, "add_1_input").unwrap();
+    EventSource::new()
+        .connect(AddOne::input, &model_mbox)
+        .bind_endpoint(&mut bench, "add_1_input")?;
 
-    let sim = SimInit::new()
-        .add_model(model, model_mbox, "Adder")
-        .init(MonotonicTime::EPOCH)?
-        .0;
-
-    Ok((sim, registry))
+    Ok(bench.add_model(model, model_mbox, "Adder"))
 }
-
 
 fn main() {
     server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();
@@ -90,10 +81,11 @@ You can interact with the simulation using this library like this:
 from nexosim import Simulation
 
 with Simulation("0.0.0.0:41633") as sim:
-    sim.start()
+    sim.build()
+    sim.init()
     sim.process_event("add_1_input", 5)
 
-    print(sim.read_events("add_1_output"))
+    print(sim.try_read_events("add_1_output"))
 
 # Prints out:
 # [6]

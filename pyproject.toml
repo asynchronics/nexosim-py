@@ -1,6 +1,6 @@
 [project]
 name = "NeXosim-py"
-version = "0.1.0"
+version = "0.2.0"
 maintainers = [
   { name = "Stanisław Massalski", email = "stanislaw.massalski@asynchronics.com" },
 ]
