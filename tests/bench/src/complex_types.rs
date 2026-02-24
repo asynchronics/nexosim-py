@@ -1,8 +1,9 @@
 use nexosim::model::Model;
 use nexosim::ports::Output;
+use nexosim::Message;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Message)]
 pub enum TestLoad {
     VarA(),
     VarB {},
@@ -13,7 +14,7 @@ pub enum TestLoad {
     VarG { x: i32, y: TestSubLoad },
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Message)]
 pub enum TestSubLoad {
     VarA,
     VarB {},
@@ -23,15 +24,14 @@ pub enum TestSubLoad {
 }
 
 /// MyModel.
-#[derive(Default)]
+#[derive(Default, Deserialize, Serialize, Debug)]
 pub(crate) struct MyModel {
     pub(crate) output: Output<TestLoad>,
 }
 
+#[Model]
 impl MyModel {
     pub async fn my_input(&mut self, value: TestLoad) {
         self.output.send(value).await;
     }
 }
-
-impl Model for MyModel {}

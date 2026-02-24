@@ -29,6 +29,7 @@ struct Cli {
 enum Bench {
     Coffee,
     CoffeeRt,
+    CoffeeRtTicker,
     Types,
 }
 
@@ -39,6 +40,7 @@ impl std::str::FromStr for Bench {
         match s.to_lowercase().as_str() {
             "coffee" => Ok(Self::Coffee),
             "coffeert" => Ok(Self::CoffeeRt),
+            "coffeertticker" => Ok(Self::CoffeeRtTicker),
             "types" => Ok(Self::Types),
             _ => Err(format!("{s} bench not recognized.")),
         }
@@ -74,6 +76,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("HTTP CoffeeRT server listening at {}", addr);
                 server::run_with_shutdown(sims::rt_coffee_bench, addr.parse()?, signal)
             }
+            Bench::CoffeeRtTicker => {
+                println!("HTTP CoffeeRT with Ticker server listening at {}", addr);
+                server::run_with_shutdown(sims::rt_coffee_bench_ticker, addr.parse()?, signal)
+            }
             Bench::Types => {
                 println!("HTTP Bench2 server listening at {}", addr);
                 server::run_with_shutdown(sims::types_bench, addr.parse()?, signal)
@@ -89,6 +95,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Bench::CoffeeRt => {
                 println!("Local CoffeeRT server listening at {}", addr);
                 server::run_local_with_shutdown(sims::rt_coffee_bench, addr, signal)
+            }
+            Bench::CoffeeRtTicker => {
+                println!("HTTP CoffeeRT with Ticker server listening at {}", addr);
+                server::run_with_shutdown(sims::rt_coffee_bench_ticker, addr.parse()?, signal)
             }
             Bench::Types => {
                 println!("Local Bench2 server listening at {}", addr);

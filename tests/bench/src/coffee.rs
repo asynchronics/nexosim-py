@@ -2,14 +2,17 @@
 
 use std::time::Duration;
 
+use nexosim::model::{schedulable, Model};
+use nexosim::simulation::EventKey;
+use nexosim::Message;
 use serde::{Deserialize, Serialize};
 
-use nexosim::model::{Context, InitializedModel, Model};
+use nexosim::model::Context;
 use nexosim::ports::Output;
-use nexosim::simulation::ActionKey;
 use nexosim::time::MonotonicTime;
 
 /// Water pump.
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Pump {
     /// Actual volumetric flow rate [m³·s⁻¹] -- output port.
     pub(crate) flow_rate: Output<f64>,
@@ -18,6 +21,7 @@ pub(crate) struct Pump {
     nominal_flow_rate: f64,
 }
 
+#[Model]
 impl Pump {
     /// Creates a pump with the specified nominal flow rate [m³·s⁻¹].
     pub(crate) fn new(nominal_flow_rate: f64) -> Self {
@@ -36,11 +40,18 @@ impl Pump {
 
         self.flow_rate.send(flow_rate).await;
     }
+
+    /// Checks what the flow rate will be after receiving the command -- replier port.
+    pub(crate) async fn test_cmd(&mut self, cmd: PumpCommand) -> f64 {
+        match cmd {
+            PumpCommand::On => self.nominal_flow_rate,
+            PumpCommand::Off => 0.0,
+        }
+    }
 }
 
-impl Model for Pump {}
-
 /// Espresso machine controller.
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Controller {
     /// Pump command -- output port.
     pub(crate) pump_cmd: Output<PumpCommand>,
@@ -51,9 +62,10 @@ pub(crate) struct Controller {
     water_sense: WaterSenseState,
     /// Event key, which if present indicates that the machine is currently
     /// brewing -- internal state.
-    stop_brew_key: Option<ActionKey>,
+    stop_brew_key: Option<EventKey>,
 }
 
+#[Model]
 impl Controller {
     /// Default brew time [s].
     const DEFAULT_BREW_TIME: Duration = Duration::new(25, 0);
@@ -91,7 +103,7 @@ impl Controller {
     }
 
     /// Starts brewing or cancels the current brew -- input port.
-    pub(crate) async fn brew_cmd(&mut self, _: (), context: &mut Context<Self>) {
+    pub(crate) async fn brew_cmd(&mut self, _: (), context: &Context<Self>) {
         // If a brew was ongoing, sending the brew command is interpreted as a
         // request to cancel it.
         if let Some(key) = self.stop_brew_key.take() {
@@ -111,13 +123,14 @@ impl Controller {
         // Schedule the `stop_brew()` method and turn on the pump.
         self.stop_brew_key = Some(
             context
-                .schedule_keyed_event(self.brew_time, Self::stop_brew, ())
+                .schedule_keyed_event(self.brew_time, schedulable!(Self::stop_brew), ())
                 .unwrap(),
         );
         self.pump_cmd.send(PumpCommand::On).await;
     }
 
     /// Stops brewing.
+    #[nexosim(schedulable)]
     async fn stop_brew(&mut self) {
         if self.stop_brew_key.take().is_some() {
             self.pump_cmd.send(PumpCommand::Off).await;
@@ -125,16 +138,15 @@ impl Controller {
     }
 }
 
-impl Model for Controller {}
-
 /// ON/OFF pump command.
-#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize, Message)]
 pub(crate) enum PumpCommand {
     On,
     Off,
 }
 
 /// Water tank.
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Tank {
     /// Water sensor -- output port.
     pub(crate) water_sense: Output<WaterSenseState>,
@@ -144,6 +156,8 @@ pub(crate) struct Tank {
     /// State that exists when the mass flow rate is non-zero -- internal state.
     dynamic_state: Option<TankDynamicState>,
 }
+
+#[Model]
 impl Tank {
     /// Creates a new tank with the specified amount of water [m³].
     ///
@@ -159,7 +173,7 @@ impl Tank {
     }
 
     /// Water volume added [m³] -- input port.
-    pub(crate) async fn fill(&mut self, added_volume: f64, context: &mut Context<Self>) {
+    pub(crate) async fn fill(&mut self, added_volume: f64, context: &Context<Self>) {
         // Ignore zero and negative values. We could also impose a maximum based
         // on tank capacity.
         if added_volume <= 0.0 {
@@ -199,7 +213,7 @@ impl Tank {
     /// # Panics
     ///
     /// This method will panic if the flow rate is negative.
-    pub(crate) async fn set_flow_rate(&mut self, flow_rate: f64, context: &mut Context<Self>) {
+    pub(crate) async fn set_flow_rate(&mut self, flow_rate: f64, context: &Context<Self>) {
         assert!(flow_rate >= 0.0);
 
         let time = context.time();
@@ -244,7 +258,8 @@ impl Tank {
         let duration_until_empty = Duration::from_secs_f64(duration_until_empty);
 
         // Schedule the next update.
-        match context.schedule_keyed_event(duration_until_empty, Self::set_empty, ()) {
+        match context.schedule_keyed_event(duration_until_empty, schedulable!(Self::set_empty), ())
+        {
             Ok(set_empty_key) => {
                 let state = TankDynamicState {
                     last_volume_update: time,
@@ -262,16 +277,16 @@ impl Tank {
     }
 
     /// Updates the state of the tank to indicate that there is no more water.
+    #[nexosim(schedulable)]
     async fn set_empty(&mut self) {
         self.volume = 0.0;
         self.dynamic_state = None;
         self.water_sense.send(WaterSenseState::Empty).await;
     }
-}
 
-impl Model for Tank {
     /// Broadcasts the initial state of the water sense.
-    async fn init(mut self, _: &mut Context<Self>) -> InitializedModel<Self> {
+    #[nexosim(init)]
+    async fn init(&mut self) {
         self.water_sense
             .send(if self.volume == 0.0 {
                 WaterSenseState::Empty
@@ -279,21 +294,20 @@ impl Model for Tank {
                 WaterSenseState::NotEmpty
             })
             .await;
-
-        self.into()
     }
 }
 
 /// Dynamic state of the tank that exists when and only when the mass flow rate
 /// is non-zero.
+#[derive(Serialize, Deserialize, Debug)]
 struct TankDynamicState {
     last_volume_update: MonotonicTime,
-    set_empty_key: ActionKey,
+    set_empty_key: EventKey,
     flow_rate: f64,
 }
 
 /// Water level in the tank.
-#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Deserialize, Eq, PartialEq, Serialize, Message, Debug)]
 pub(crate) enum WaterSenseState {
     Empty,
     NotEmpty,
