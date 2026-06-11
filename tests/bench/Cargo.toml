@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 async-std = "1.13"
 clap = { version = "4.5.30", features = ["derive"] }
-nexosim = { version = "1.0.0", features = [
+nexosim = { git = "https://github.com/asynchronics/nexosim.git", rev = "42eb361", features = [
     "tracing", "server"
 ] }
 nexosim-macros = "1.0.0"

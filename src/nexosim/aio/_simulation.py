@@ -89,6 +89,7 @@ class Simulation:
 
                     - [`BenchPanicError`][nexosim.exceptions.BenchPanicError]
                     - [`BenchError`][nexosim.exceptions.BenchError]
+                    - [`BenchAlreadyBuiltError`][nexosim.exceptions.BenchAlreadyBuiltError]
                     - [`DuplicateEventSourceError`][nexosim.exceptions.DuplicateEventSourceError]
                     - [`DuplicateQuerySourceError`][nexosim.exceptions.DuplicateQuerySourceError]
                     - [`DuplicateEventSinkError`][nexosim.exceptions.DuplicateEventSinkError]

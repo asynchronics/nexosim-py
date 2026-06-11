@@ -99,6 +99,7 @@ class Simulation:
 
                     - [`BenchPanicError`][nexosim.exceptions.BenchPanicError]
                     - [`BenchError`][nexosim.exceptions.BenchError]
+                    - [`BenchAlreadyBuiltError`][nexosim.exceptions.BenchAlreadyBuiltError]
                     - [`DuplicateEventSourceError`][nexosim.exceptions.DuplicateEventSourceError]
                     - [`DuplicateQuerySourceError`][nexosim.exceptions.DuplicateQuerySourceError]
                     - [`DuplicateEventSinkError`][nexosim.exceptions.DuplicateEventSinkError]
@@ -1150,6 +1151,8 @@ def _to_error(error: simulation_pb2.Error) -> exceptions.SimulationError:
             return exceptions.DuplicateEventSinkError(error.message)
         case 26:
             return exceptions.InvalidBenchConfigError(error.message)
+        case 27:
+            return exceptions.BenchAlreadyBuiltError(error.message)
 
         # Simulation runtime errors.
         case 40:

@@ -1,7 +1,11 @@
 import pytest
 
 from nexosim import Simulation
-from nexosim.exceptions import BenchNotBuiltError, SimulationNotStartedError
+from nexosim.exceptions import (
+    BenchAlreadyBuiltError,
+    BenchNotBuiltError,
+    SimulationNotStartedError,
+)
 from nexosim.time import Duration, MonotonicTime
 
 
@@ -16,6 +20,7 @@ def sim(coffee):
 
 def test_reinitialize_sim_losses_state(sim):
     sim.step_until(Duration(1))
+    sim.terminate()
     sim.build()
     sim.init()
 
@@ -141,23 +146,22 @@ def test_init_sim_not_built(coffee):
             sim.init()
 
 
-def test_init_time(coffee):
-    with Simulation(coffee) as sim:
-        sim.build()
-        t0 = MonotonicTime(1, 0)
-        sim.init(t0)
-
-        assert sim.time() == t0
+def test_init_time(sim):
+    sim.terminate()
+    sim.build()
+    t0 = MonotonicTime(1, 0)
+    sim.init(t0)
+    assert sim.time() == t0
 
 
 def test_save_and_restore(sim):
     sim.process_event("brew_cmd")
     state = sim.save()
 
-    #
     sim.step()
     assert sim.try_read_events("flow_rate") == [4.5e-6, 0.0]
     assert sim.time() == MonotonicTime(25, 0)
+    sim.terminate()
 
     # Restore the simulation state to before the step
     sim.build()
@@ -176,6 +180,8 @@ def test_save_restore_and_run(sim):
     sim.step()
     assert sim.try_read_events("flow_rate") == [4.5e-6, 0.0]
     assert sim.time() == MonotonicTime(25, 0)
+
+    sim.terminate()
 
     # Restore the simulation state to before the step
     sim.build()
@@ -247,3 +253,11 @@ def test_inject_event_schedules_asap(sim):
     sim.schedule_event(MonotonicTime(1), "tank_fill", 5.0)
     sim.step()
     assert sim.try_read_events("flow_rate") == [4.5e-6]
+
+
+def bench_already_built(coffee):
+    """A started coffee bench simulation object."""
+    with Simulation(coffee) as sim:
+        sim.build()
+        with pytest.raises(BenchAlreadyBuiltError):
+            sim.build()
