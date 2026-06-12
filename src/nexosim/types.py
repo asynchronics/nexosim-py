@@ -773,19 +773,19 @@ def tuple_type(
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2]
-) -> TupleType3Arg[_Arg0, _Arg1, _Arg2]: ...
+) -> type[TupleType3Arg[_Arg0, _Arg1, _Arg2]]: ...
 
 
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3]
-) -> TupleType4Arg[_Arg0, _Arg1, _Arg2, _Arg3]: ...
+) -> type[TupleType4Arg[_Arg0, _Arg1, _Arg2, _Arg3]]: ...
 
 
 @typing.overload
 def tuple_type(
     _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3], _4: type[_Arg4]
-) -> TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]: ...
+) -> type[TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]]: ...
 
 
 @typing.overload
@@ -796,7 +796,7 @@ def tuple_type(
     _3: type[_Arg3],
     _4: type[_Arg4],
     _5: type[_Arg5],
-) -> TupleType6Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]: ...
+) -> type[TupleType6Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]]: ...
 
 
 @typing.overload
@@ -808,7 +808,7 @@ def tuple_type(
     _4: type[_Arg4],
     _5: type[_Arg5],
     _6: type[_Arg6],
-) -> TupleType7Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]: ...
+) -> type[TupleType7Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]]: ...
 
 
 @typing.overload
@@ -821,7 +821,7 @@ def tuple_type(
     _5: type[_Arg5],
     _6: type[_Arg6],
     _7: type[_Arg7],
-) -> TupleType8Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]: ...
+) -> type[TupleType8Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]]: ...
 
 
 @typing.overload
@@ -835,7 +835,9 @@ def tuple_type(
     _6: type[_Arg6],
     _7: type[_Arg7],
     _8: type[_Arg8],
-) -> TupleType9Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]: ...
+) -> type[
+    TupleType9Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]
+]: ...
 
 
 @typing.overload
@@ -850,8 +852,8 @@ def tuple_type(
     _7: type[_Arg7],
     _8: type[_Arg8],
     _9: type[_Arg9],
-) -> TupleType10Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9
+) -> type[
+    TupleType10Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9]
 ]: ...
 
 
@@ -868,8 +870,10 @@ def tuple_type(
     _8: type[_Arg8],
     _9: type[_Arg9],
     _10: type[_Arg10],
-) -> TupleType11Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
+) -> type[
+    TupleType11Arg[
+        _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
+    ]
 ]: ...
 
 
@@ -887,8 +891,21 @@ def tuple_type(
     _9: type[_Arg9],
     _10: type[_Arg10],
     _11: type[_Arg11],
-) -> TupleType12Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10, _Arg11
+) -> type[
+    TupleType12Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+    ]
 ]: ...
 
 
@@ -907,20 +924,22 @@ def tuple_type(
     _10: type[_Arg10],
     _11: type[_Arg11],
     _12: type[_Arg12],
-) -> TupleType13Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
+) -> type[
+    TupleType13Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+    ]
 ]: ...
 
 
@@ -940,21 +959,23 @@ def tuple_type(
     _11: type[_Arg11],
     _12: type[_Arg12],
     _13: type[_Arg13],
-) -> TupleType14Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
+) -> type[
+    TupleType14Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+        _Arg13,
+    ]
 ]: ...
 
 
@@ -975,22 +996,24 @@ def tuple_type(
     _12: type[_Arg12],
     _13: type[_Arg13],
     _14: type[_Arg14],
-) -> TupleType15Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-    _Arg14,
+) -> type[
+    TupleType15Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+        _Arg13,
+        _Arg14,
+    ]
 ]: ...
 
 
@@ -1012,23 +1035,25 @@ def tuple_type(
     _13: type[_Arg13],
     _14: type[_Arg14],
     _15: type[_Arg15],
-) -> TupleType16Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-    _Arg14,
-    _Arg15,
+) -> type[
+    TupleType16Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+        _Arg13,
+        _Arg14,
+        _Arg15,
+    ]
 ]: ...
 
 
