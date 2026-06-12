@@ -81,6 +81,9 @@ ignore = [
   # line length lint is disabled because ruff format checks
   # line length while ignoring docstrings
   "E501",
+  # Without disabling UP006 ruff can autofix the `tuple_type` signature
+  # replacing `Typeform` with `type`. This would result in pyright errors.
+  "UP006",
 ]
 pydocstyle.convention = "google"
 
