@@ -1,3 +1,4 @@
+import multiprocessing
 import shlex
 import subprocess
 import time
@@ -5,6 +6,11 @@ import time
 import pytest
 
 from nexosim import Simulation
+
+
+@pytest.fixture(scope="session", autouse=True)
+def always_spawn():
+    multiprocessing.set_start_method("spawn")
 
 
 @pytest.fixture(scope="session")

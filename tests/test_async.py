@@ -10,6 +10,7 @@ from nexosim.exceptions import (
     SimulationNotStartedError,
 )
 from nexosim.time import Duration, MonotonicTime
+from nexosim.types import tuple_type
 
 
 @pytest.mark.slow
@@ -470,6 +471,35 @@ async def test_inject_event_running_with_ticker(rt_coffee_ticker):
         await asyncio.gather(run(), inject())
 
         assert await rt_sim.try_read_events("flow_rate") == [4.5e-06, 0.0]
+
+
+@pytest.mark.asyncio
+async def test_schedule_query(sim: Simulation):
+    query_task = asyncio.create_task(sim.schedule_query(Duration(1), "test_pump", "On"))
+
+    async def run():
+        await sim.step_until(Duration(2))
+
+    await asyncio.gather(query_task, run())
+
+    assert query_task.result() == [4.5e-6]
+
+
+@pytest.mark.asyncio
+async def test_schedule_query_reply_type(sim: Simulation):
+    class ReplyType(tuple_type(float)): ...
+
+    query_task = asyncio.create_task(
+        sim.schedule_query(Duration(1), "test_pump", "On", ReplyType)
+    )
+
+    async def run():
+        await sim.step_until(Duration(2))
+
+    await asyncio.gather(query_task, run())
+
+    assert isinstance(query_task.result()[0], ReplyType)
+
 
 @pytest.mark.asyncio
 async def bench_already_built(coffee):

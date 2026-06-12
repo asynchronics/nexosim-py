@@ -1,3 +1,5 @@
+from multiprocessing import Process
+
 import pytest
 
 from nexosim import Simulation
@@ -7,6 +9,7 @@ from nexosim.exceptions import (
     SimulationNotStartedError,
 )
 from nexosim.time import Duration, MonotonicTime
+from nexosim.types import tuple_type
 
 
 @pytest.fixture
@@ -253,6 +256,45 @@ def test_inject_event_schedules_asap(sim):
     sim.schedule_event(MonotonicTime(1), "tank_fill", 5.0)
     sim.step()
     assert sim.try_read_events("flow_rate") == [4.5e-6]
+
+
+def step_func(addr):
+    with Simulation(addr) as sim:
+        sim.step_until(Duration(0, 100_000_000))
+
+
+def test_schedule_query(rt_coffee):
+    with Simulation(rt_coffee) as sim:
+        sim.build()
+        sim.init()
+
+        step_proc = Process(target=step_func, args=(rt_coffee,))
+        step_proc.start()
+
+        reply = sim.schedule_query(Duration(0, 10_000_000), "test_pump", "On")
+
+        step_proc.join()
+
+    assert reply == [4.5e-6]
+
+
+def test_schedule_query_reply_type(rt_coffee):
+    class ReplyType(tuple_type(float)): ...
+
+    with Simulation(rt_coffee) as sim:
+        sim.build()
+        sim.init()
+
+        step_proc = Process(target=step_func, args=(rt_coffee,))
+        step_proc.start()
+
+        reply = sim.schedule_query(
+            Duration(0, 10_000_000), "test_pump", "On", ReplyType
+        )
+
+        step_proc.join()
+
+    assert reply == [ReplyType(4.5e-6)]
 
 
 def bench_already_built(coffee):
