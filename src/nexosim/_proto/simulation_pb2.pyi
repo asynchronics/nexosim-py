@@ -26,6 +26,7 @@ class ErrorCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DUPLICATE_QUERY_SOURCE: _ClassVar[ErrorCode]
     DUPLICATE_EVENT_SINK: _ClassVar[ErrorCode]
     INVALID_BENCH_CONFIG: _ClassVar[ErrorCode]
+    BENCH_ALREADY_BUILT: _ClassVar[ErrorCode]
     SIMULATION_PANIC: _ClassVar[ErrorCode]
     SIMULATION_NOT_STARTED: _ClassVar[ErrorCode]
     SIMULATION_TERMINATED: _ClassVar[ErrorCode]
@@ -61,6 +62,7 @@ DUPLICATE_EVENT_SOURCE: ErrorCode
 DUPLICATE_QUERY_SOURCE: ErrorCode
 DUPLICATE_EVENT_SINK: ErrorCode
 INVALID_BENCH_CONFIG: ErrorCode
+BENCH_ALREADY_BUILT: ErrorCode
 SIMULATION_PANIC: ErrorCode
 SIMULATION_NOT_STARTED: ErrorCode
 SIMULATION_TERMINATED: ErrorCode
@@ -449,6 +451,28 @@ class ProcessEventReply(_message.Message):
     empty: _empty_pb2.Empty
     error: Error
     def __init__(self, empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
+
+class ScheduleQueryRequest(_message.Message):
+    __slots__ = ("time", "duration", "source", "request")
+    TIME_FIELD_NUMBER: _ClassVar[int]
+    DURATION_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    REQUEST_FIELD_NUMBER: _ClassVar[int]
+    time: _timestamp_pb2.Timestamp
+    duration: _duration_pb2.Duration
+    source: Path
+    request: bytes
+    def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., source: _Optional[_Union[Path, _Mapping]] = ..., request: _Optional[bytes] = ...) -> None: ...
+
+class ScheduleQueryReply(_message.Message):
+    __slots__ = ("replies", "empty", "error")
+    REPLIES_FIELD_NUMBER: _ClassVar[int]
+    EMPTY_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    replies: _containers.RepeatedScalarFieldContainer[bytes]
+    empty: _empty_pb2.Empty
+    error: Error
+    def __init__(self, replies: _Optional[_Iterable[bytes]] = ..., empty: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
 class ProcessQueryRequest(_message.Message):
     __slots__ = ("source", "request")

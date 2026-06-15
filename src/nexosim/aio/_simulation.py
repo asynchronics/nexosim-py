@@ -89,6 +89,7 @@ class Simulation:
 
                     - [`BenchPanicError`][nexosim.exceptions.BenchPanicError]
                     - [`BenchError`][nexosim.exceptions.BenchError]
+                    - [`BenchAlreadyBuiltError`][nexosim.exceptions.BenchAlreadyBuiltError]
                     - [`DuplicateEventSourceError`][nexosim.exceptions.DuplicateEventSourceError]
                     - [`DuplicateQuerySourceError`][nexosim.exceptions.DuplicateQuerySourceError]
                     - [`DuplicateEventSinkError`][nexosim.exceptions.DuplicateEventSinkError]
@@ -903,6 +904,75 @@ class Simulation:
         reply = await self._stub.ProcessEvent(request)  # type: ignore
         if reply.HasField("error"):
             raise _to_error(reply.error)
+
+    async def schedule_query(
+        self,
+        deadline: MonotonicTime | Duration,
+        source: str | typing.Iterable[str],
+        request: typing.Any = None,
+        reply_type: TypeForm[T] = object,
+    ) -> list[T]:
+        """Schedules a query at a future time.
+
+        Queries scheduled for the same time and targeting the same model are
+        guaranteed to be processed according to the scheduling order.
+
+        Blocks until the reply is received.
+
+        Args:
+            deadline: The target time, specified either as an absolute time
+                set in the future of the current simulation time or as a strictly
+                positive duration relative to the current simulation time.
+
+            source: The path of the query source.
+
+            request: An object that can be serialized/deserialized to the expected
+                request type. The `None` default may be used if the Rust request
+                type is `()` or `Option`.
+
+            reply_type: The Python type to which replies to the query should
+                be mapped. If left unspecified, replies are mapped to their
+                canonical representation in terms of built-in Python types such
+                as `bool`, `int`, `float`, `str`, `bytes`, `dict` and `list`.
+
+        Raises:
+            exceptions.SimulationError: One of the exceptions derived from
+                [`SimulationError`][nexosim.exceptions.SimulationError] may be
+                raised, such as:
+
+                - [`InvalidDeadlineError`][nexosim.exceptions.InvalidDeadlineError]
+                - [`EventSourceNotFoundError`][nexosim.exceptions.EventSourceNotFoundError]
+                - [`InvalidEventTypeError`][nexosim.exceptions.InvalidEventTypeError]
+                - [`InvalidMessageError`][nexosim.exceptions.InvalidMessageError]
+                - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
+        """
+
+        kwargs = {}
+
+        if isinstance(deadline, MonotonicTime):
+            kwargs["time"] = PbTimestamp(seconds=deadline.secs, nanos=deadline.nanos)
+        else:
+            kwargs["duration"] = PbDuration(seconds=deadline.secs, nanos=deadline.nanos)
+
+        source = source if not isinstance(source, str) else (source,)
+        kwargs["source"] = simulation_pb2.Path(segments=source)
+
+        if inspect.isclass(type(request)):
+            request_bytes = cbor2_converter.dumps(request)
+        else:
+            request_bytes = cbor2.dumps(request)
+        kwargs["request"] = request_bytes
+
+        request = simulation_pb2.ScheduleQueryRequest(**kwargs)
+        reply = await self._stub.ScheduleQuery(request)  # type: ignore
+
+        if reply.HasField("error"):
+            raise _to_error(reply.error)
+
+        if reply_type is object:
+            return [cbor2.loads(r) for r in reply.replies]
+        else:
+            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
 
     async def process_query(
         self,
