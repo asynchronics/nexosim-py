@@ -1,3 +1,7 @@
+# 0.2.1
+
+Documentation updates
+
 # 0.2.0
 
 - Rename methods to match the simulator counterparts:

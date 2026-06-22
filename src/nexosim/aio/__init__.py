@@ -9,20 +9,21 @@ This module defines an asynchronous version of the
         import asyncio
         from nexosim.aio import Simulation
         from nexosim.time import MonotonicTime, Duration
-        from nexosim.exceptions import SimulationHaltedError
+        from nexosim.exceptions import SimulationNotStartedError
 
         async def run():
             async with Simulation("0.0.0.0:41633") as sim:
-                await sim.start()
+                await sim.build()
+                await sim.init()
 
                 await sim.schedule_event(MonotonicTime(1), "input", 1)
                 await sim.schedule_event(MonotonicTime(3), "input", 2)
                 try:
                     await sim.step_until(Duration(5))
-                except SimulationHaltedError:
+                except SimulationNotStartedError:
                     time = await sim.time()
                     print(f"Simulation halted at {time}")
-                    print(await sim.read_events("output"))
+                    print(await sim.try_read_events("output"))
 
         async def halt():
             async with Simulation("0.0.0.0:41633") as sim:
@@ -36,54 +37,58 @@ This module defines an asynchronous version of the
         ```
     === "Server"
         ```rust
-        use nexosim::model::Model;
-        use nexosim::ports::{EventSource, EventBuffer, Output};
-        use nexosim::registry::EndpointRegistry;
-        use nexosim::simulation::{Mailbox, SimInit, Simulation, SimulationError};
-        use nexosim::time::{MonotonicTime, AutoSystemClock};
-        use nexosim::server;
+        use std::error::Error;
+        use std::time::Duration;
 
-        #[derive(Default)]
-        pub(crate) struct MyModel {
-            pub(crate) output: Output<OutputEvent>
+        use nexosim::time::{AutoSystemClock, PeriodicTicker};
+        use serde::{Deserialize, Serialize};
+
+        use nexosim::model::Model;
+        use nexosim::ports::{EventSource, Output, SinkState, event_queue_endpoint};
+        use nexosim::simulation::{Mailbox, SimInit};
+        use nexosim::{Message, server};
+
+        #[derive(Clone, Message, Serialize, Deserialize)]
+        pub(crate) struct OutputEvent {
+            pub(crate) foo: u16,
+            pub(crate) bar: String,
         }
 
+        #[derive(Default, Serialize, Deserialize)]
+        pub(crate) struct MyModel {
+            pub(crate) output: Output<OutputEvent>,
+        }
+
+        #[Model]
         impl MyModel {
             pub async fn my_input(&mut self, value: u16) {
-                self.output.send(value).await;
+                let event = OutputEvent {
+                    foo: value,
+                    bar: String::from("string"),
+                };
+                self.output.send(event).await;
             }
         }
 
-        impl Model for MyModel {}
-
-        fn bench(_cfg: ()) -> Result<(Simulation, EndpointRegistry), SimulationError> {
+        fn bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
             let mut model = MyModel::default();
+            let mbox = Mailbox::new();
 
-            // Mailboxes.
-            let model_mbox = Mailbox::new();
-            let model_addr = model_mbox.address();
+            let mut bench = SimInit::new();
 
-            // Endpoints.
-            let mut registry = EndpointRegistry::new();
+            let sink = event_queue_endpoint(&mut bench, SinkState::Enabled, "output")?;
+            model.output.connect_sink(sink);
 
-            let output = EventBuffer::new();
-            model.output.connect_sink(&output);
-            registry.add_event_sink(output, "output").unwrap();
+            EventSource::new()
+                .connect(MyModel::my_input, &mbox)
+                .bind_endpoint(&mut bench, "input")?;
 
-            let mut input = EventSource::new();
-            input.connect(MyModel::my_input, &model_addr);
-            registry.add_event_source(input, "input").unwrap();
-
-            // Assembly and initialization.
-            let sim = SimInit::new()
-                .add_model(model, model_mbox, "model")
-                .set_clock(AutoSystemClock::new())
-                .init(MonotonicTime::EPOCH)?
-                .0;
-
-            Ok((sim, registry))
+            // Assembly.
+            Ok(bench.add_model(model, mbox, "model").with_clock(
+                AutoSystemClock::new(),
+                PeriodicTicker::new(Duration::from_millis(10)),
+            ))
         }
-
 
         fn main() {
             server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();

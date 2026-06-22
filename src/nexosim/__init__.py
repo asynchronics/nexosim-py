@@ -21,7 +21,8 @@ NeXosim gRPC simulation server.
         with Simulation(address='localhost:41633') as sim:
 
             # Initialize the simulation.
-            sim.start()
+            sim.build()
+            sim.init()
 
             # Schedule an event on the "input" event source
             sim.schedule_event(Duration(1), "input", 1)
@@ -30,7 +31,7 @@ NeXosim gRPC simulation server.
             sim.step()
 
             # Read a list of `OutputEvent` objects from the "output" event sink.
-            outputs = sim.read_events("output", OutputEvent)
+            outputs = sim.try_read_events("output", OutputEvent)
             print(outputs)
 
             # Advance the simulation by 3s and read the final simulation time.
@@ -40,62 +41,53 @@ NeXosim gRPC simulation server.
         ```
     === "Server"
         ```rust
-        use serde::Serialize;
+        use std::error::Error;
+
+        use serde::{Deserialize, Serialize};
 
         use nexosim::model::Model;
-        use nexosim::ports::{EventSource, EventBuffer, Output};
-        use nexosim::registry::EndpointRegistry;
-        use nexosim::simulation::{Mailbox, SimInit, Simulation, SimulationError};
-        use nexosim::time::MonotonicTime;
-        use nexosim::server;
+        use nexosim::ports::{EventSource, Output, SinkState, event_queue_endpoint};
+        use nexosim::simulation::{Mailbox, SimInit};
+        use nexosim::{Message, server};
 
-        #[derive(Clone, Serialize)]
+        #[derive(Clone, Message, Serialize, Deserialize)]
         pub(crate) struct OutputEvent {
             pub(crate) foo: u16,
             pub(crate) bar: String,
         }
 
-        #[derive(Default)]
+        #[derive(Default, Serialize, Deserialize)]
         pub(crate) struct MyModel {
-            pub(crate) output: Output<OutputEvent>
+            pub(crate) output: Output<OutputEvent>,
         }
 
+        #[Model]
         impl MyModel {
             pub async fn my_input(&mut self, value: u16) {
-                let event = OutputEvent{foo: value, bar: String::from("string")};
+                let event = OutputEvent {
+                    foo: value,
+                    bar: String::from("string"),
+                };
                 self.output.send(event).await;
             }
         }
 
-        impl Model for MyModel {}
-
-        fn bench(_cfg: ()) -> Result<(Simulation, EndpointRegistry), SimulationError> {
+        fn bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
             let mut model = MyModel::default();
+            let mbox = Mailbox::new();
 
-            // Mailboxes.
-            let model_mbox = Mailbox::new();
-            let model_addr = model_mbox.address();
+            let mut bench = SimInit::new();
 
-            // Endpoints.
-            let mut registry = EndpointRegistry::new();
+            let sink = event_queue_endpoint(&mut bench, SinkState::Enabled, "output")?;
+            model.output.connect_sink(sink);
 
-            let output = EventBuffer::new();
-            model.output.connect_sink(&output);
-            registry.add_event_sink(output, "output").unwrap();
+            EventSource::new()
+                .connect(MyModel::my_input, &mbox)
+                .bind_endpoint(&mut bench, "input")?;
 
-            let mut input = EventSource::new();
-            input.connect(MyModel::my_input, &model_addr);
-            registry.add_event_source(input, "input").unwrap();
-
-            // Assembly and initialization.
-            let sim = SimInit::new()
-                .add_model(model, model_mbox, "model")
-                .init(MonotonicTime::EPOCH)?
-                .0;
-
-            Ok((sim, registry))
+            // Assembly.
+            Ok(bench.add_model(model, mbox, "model"))
         }
-
 
         fn main() {
             server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();

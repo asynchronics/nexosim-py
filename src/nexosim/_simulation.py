@@ -157,7 +157,7 @@ class Simulation:
         method before it can be initialized.
 
         If a simulation bench is already running, it is replaced by the newly
-        initialized bench in the restored state. In such case, events that have
+        initialized bench. In such case, events that have
         not yet been retrieved from the sinks will be lost and the sinks are
         reset to their default enabled/disabled state.
 
