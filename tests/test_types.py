@@ -1,8 +1,7 @@
 import dataclasses
+from typing import Optional
 
 import pytest
-
-from typing import Optional
 
 from nexosim._config import cbor2_converter
 from nexosim.types import UnitType, enumclass, partialclass, tuple_type
