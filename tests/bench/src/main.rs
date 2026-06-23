@@ -1,8 +1,10 @@
 //! Tool for starting a nexosim server set up with a test bench.
 
+#[cfg(unix)]
 use async_std::prelude::StreamExt;
-
+#[cfg(unix)]
 use signal_hook::consts::TERM_SIGNALS;
+#[cfg(unix)]
 use signal_hook_async_std::Signals;
 
 use clap::Parser;
@@ -61,10 +63,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(value) => value,
     };
 
-    let mut signals = Signals::new(TERM_SIGNALS)?;
-    let signal = async move {
-        signals.next().await;
+    #[cfg(unix)]
+    let signal = {
+        let mut signals = Signals::new(TERM_SIGNALS)?;
+        async move { signals.next().await; }
     };
+    #[cfg(not(unix))]
+    let signal = std::future::pending::<()>();
 
     if cli.http {
         match cli.bench {
@@ -107,7 +112,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }?;
 
         #[cfg(not(unix))]
-        return Err("Run with the --http arg on non-unix systems.");
+        return Err("Run with the --http arg on non-unix systems.".into());
     }
 
     println!("Server exited");
