@@ -447,11 +447,15 @@ class TestLoadRoundTrip:
 
     def test_var_d(self, types_sim):
         types_sim.process_event("input", TestLoad.VarD("hello", 3.14))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarD("hello", 3.14)]
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarD("hello", 3.14)
+        ]
 
     def test_var_e(self, types_sim):
         types_sim.process_event("input", TestLoad.VarE(x="hello", y=True))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarE(x="hello", y=True)]
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarE(x="hello", y=True)
+        ]
 
     def test_var_f_sub_var_a(self, types_sim):
         types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarA()))
@@ -462,19 +466,29 @@ class TestLoadRoundTrip:
 
     def test_var_f_sub_var_b(self, types_sim):
         types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarB()))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarF(TestSubLoad.VarB())]
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarB())
+        ]
 
     def test_var_f_sub_var_c(self, types_sim):
         types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarC(7)))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarF(TestSubLoad.VarC(7))]
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarC(7))
+        ]
 
     def test_var_f_sub_var_d(self, types_sim):
         types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarD("x", 1.0)))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarF(TestSubLoad.VarD("x", 1.0))]
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarD("x", 1.0))
+        ]
 
     def test_var_f_sub_var_e(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarE(x="a", y=False)))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))]
+        types_sim.process_event(
+            "input", TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))
+        )
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))
+        ]
 
     def test_var_g_sub_var_a(self, types_sim):
         types_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarA()))
@@ -486,4 +500,6 @@ class TestLoadRoundTrip:
 
     def test_var_g_sub_var_b(self, types_sim):
         types_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarB()))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarG(x=1, y=TestSubLoad.VarB())]
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarG(x=1, y=TestSubLoad.VarB())
+        ]
