@@ -84,7 +84,7 @@ pub fn rt_coffee_bench_ticker(init_tank_volume: Option<f64>) -> Result<SimInit, 
     ))
 }
 
-pub fn types_bench(_cfg: complex_types::TestLoad) -> Result<SimInit, Box<dyn Error>> {
+pub fn types_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
     let mut model = complex_types::MyModel::default();
 
     // Mailboxes.
