@@ -139,7 +139,7 @@ class TestEnumType:
         cls = enum_type.MyUnitVariant
         f = cbor2_converter.get_unstructure_hook(cls)
 
-        assert f(cls) == {"MyUnitVariant": None}
+        assert f(cls) == "MyUnitVariant"
 
     def test_unstructure_0_arg_tuple_variant(self, enum_type):
         cls = enum_type.My0ArgTupleVariant
@@ -215,7 +215,7 @@ class TestEnumType:
         cls = SingleVar.Var
         f = cbor2_converter.get_unstructure_hook(cls)
 
-        assert f(cls) == {"Var": None}
+        assert f(cls) == "Var"
 
     def test_structure_single_variant_0_arg_tuple(self, tuple_type_0_arg):
         @enumclass

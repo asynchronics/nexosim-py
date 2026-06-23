@@ -249,7 +249,7 @@ def enumclass(cls: type[_T]) -> type[_T]:
     # Custom serialization hooks for enum variants.
     for name, ty in variants.items():
         if issubclass(ty, UnitType):
-            hook = _variant_unstructure_hook(name, _unit_unstructure_hook)
+            hook = lambda e, n=name: n
         elif hasattr(ty, "_tuple_type"):
             hook = _variant_unstructure_hook(name, _tuple_unstructure_hook)
         else:
