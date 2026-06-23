@@ -249,7 +249,7 @@ def enumclass(cls: type[_T]) -> type[_T]:
     # Custom serialization hooks for enum variants.
     for name, ty in variants.items():
         if issubclass(ty, UnitType):
-            hook = lambda e, n=name: n
+            hook = _unit_variant_unstructure_hook(name)
         elif hasattr(ty, "_tuple_type"):
             hook = _variant_unstructure_hook(name, _tuple_unstructure_hook)
         else:
@@ -312,6 +312,13 @@ def enumclass(cls: type[_T]) -> type[_T]:
     _cbor2_converter.register_structure_hook(ty, structure_enum_hook)
 
     return cls
+
+
+def _unit_variant_unstructure_hook(name: str) -> typing.Callable[[typing.Any], str]:
+    def inner(e: typing.Any) -> str:
+        return name
+
+    return inner
 
 
 def _variant_unstructure_hook(
