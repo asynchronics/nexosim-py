@@ -320,6 +320,9 @@ def _variant_unstructure_hook(
     def inner(e: typing.Any) -> typing.Any:
         e_unstruct = hook(e)
 
+        if e_unstruct is None:
+            return name
+
         return {name: e_unstruct}
 
     return inner

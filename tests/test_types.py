@@ -190,7 +190,7 @@ class TestEnumType:
         cls = enum_type.MyUnitVariant
         f = cbor2_converter.get_unstructure_hook(cls)
 
-        assert f(cls) == {"MyUnitVariant": None}
+        assert f(cls) == "MyUnitVariant"
 
     def test_unstructure_0_arg_tuple_variant(self, enum_type):
         cls = enum_type.My0ArgTupleVariant
@@ -266,7 +266,7 @@ class TestEnumType:
         cls = SingleVar.Var
         f = cbor2_converter.get_unstructure_hook(cls)
 
-        assert f(cls) == {"Var": None}
+        assert f(cls) == "Var"
 
     def test_structure_single_variant_0_arg_tuple(self, tuple_type_0_arg):
         @enumclass
@@ -422,7 +422,28 @@ class TestPartialClass:
 
         f = cbor2_converter.get_unstructure_hook(P)
         assert f(P()) == {}
-        assert f(P(e=E.Var())) == {"e": {"Var": None}}
+        assert f(P(e=E.Var())) == {"e": "Var"}
+
+    def test_unstructure_with_unit_enum_variants_and_nones(self):
+        @enumclass
+        class E:
+            class VarA(UnitType): ...
+
+            class VarB(UnitType): ...
+
+        @partialclass
+        class P:
+            a: Optional[E.type] = None
+            b: Optional[E.type] = None
+            c: Optional[E.type] = None
+            d: Optional[E.type] = None
+            e: Optional[E.type] = None
+
+        f = cbor2_converter.get_unstructure_hook(P)
+        assert f(P(b=E.VarA(), d=E.VarB())) == {
+            "b": "VarA",
+            "d": "VarB",
+        }
 
     def test_is_dataclass(self):
         @partialclass
