@@ -5,7 +5,7 @@ import pytest
 
 from nexosim import Simulation
 from nexosim._config import cbor2_converter
-from nexosim.types import UnitType, enumclass, partialclass, tuple_type
+from nexosim.types import UnitType, enumclass, tuple_type
 
 
 @enumclass
@@ -381,76 +381,6 @@ class TestEnumType:
 
             @enumclass
             class _: ...
-
-
-class TestPartialClass:
-    def test_unstructure_all_none(self):
-        @partialclass
-        class P:
-            x: Optional[int] = None
-            y: Optional[str] = None
-
-        f = cbor2_converter.get_unstructure_hook(P)
-        assert f(P()) == {}
-
-    def test_unstructure_some_none(self):
-        @partialclass
-        class P:
-            x: Optional[int] = None
-            y: Optional[str] = None
-
-        f = cbor2_converter.get_unstructure_hook(P)
-        assert f(P(x=1)) == {"x": 1}
-
-    def test_unstructure_no_none(self):
-        @partialclass
-        class P:
-            x: Optional[int] = None
-            y: Optional[str] = None
-
-        f = cbor2_converter.get_unstructure_hook(P)
-        assert f(P(x=1, y="s")) == {"x": 1, "y": "s"}
-
-    def test_unstructure_with_enum_field(self, unit_type):
-        @enumclass
-        class E:
-            Var = unit_type
-
-        @partialclass
-        class P:
-            e: Optional[E.type] = None
-
-        f = cbor2_converter.get_unstructure_hook(P)
-        assert f(P()) == {}
-        assert f(P(e=E.Var())) == {"e": "Var"}
-
-    def test_unstructure_with_unit_enum_variants_and_nones(self):
-        @enumclass
-        class E:
-            class VarA(UnitType): ...
-
-            class VarB(UnitType): ...
-
-        @partialclass
-        class P:
-            a: Optional[E.type] = None
-            b: Optional[E.type] = None
-            c: Optional[E.type] = None
-            d: Optional[E.type] = None
-            e: Optional[E.type] = None
-
-        f = cbor2_converter.get_unstructure_hook(P)
-        assert f(P(b=E.VarA(), d=E.VarB())) == {
-            "b": "VarA",
-            "d": "VarB",
-        }
-
-    def test_is_dataclass(self):
-        @partialclass
-        class P:
-            x: Optional[int] = None
-
-        assert dataclasses.is_dataclass(P)
 
 
 class TestLoadRoundTrip:
