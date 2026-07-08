@@ -359,8 +359,6 @@ def _struct_unstructure_hook(e: typing.Any) -> typing.Any:  # type: ignore
         raise ValueError("struct types must expose a dataclass-like interface") from err
 
 
-
-
 @typing_extensions.dataclass_transform()
 def tupleclass(cls: typing.Type[_T]) -> typing.Type[_T]:
     """Decorator that marks a class as a tuple-like type.

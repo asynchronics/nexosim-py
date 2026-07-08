@@ -66,7 +66,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(unix)]
     let signal = {
         let mut signals = Signals::new(TERM_SIGNALS)?;
-        async move { signals.next().await; }
+        async move {
+            signals.next().await;
+        }
     };
     #[cfg(not(unix))]
     let signal = std::future::pending::<()>();

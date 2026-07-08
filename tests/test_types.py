@@ -24,6 +24,8 @@ class TestSubLoad:
         x: str
         y: bool
 
+    type = VarA | VarB | VarC | VarD | VarE
+
 
 @enumclass
 class TestLoad:
@@ -47,6 +49,23 @@ class TestLoad:
     class VarG:
         x: int
         y: TestSubLoad.type
+
+    type = VarA | VarB | VarC | VarD | VarE | VarF | VarG
+
+
+@enumclass
+class UnitEnum:
+    class VarA(UnitType): ...
+
+    class VarB(UnitType): ...
+
+    type = VarA | VarB
+
+
+@dataclasses.dataclass
+class Partial:
+    unit: Optional[UnitEnum.type] = None
+    load: Optional[TestLoad.type] = None
 
 
 @pytest.fixture
@@ -253,6 +272,8 @@ class TestEnumType:
         class SingleVar:
             Var = unit_type
 
+            type = Var
+
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
@@ -272,6 +293,8 @@ class TestEnumType:
         @enumclass
         class SingleVar:
             Var = tuple_type_0_arg
+
+            type = Var
 
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
@@ -293,6 +316,8 @@ class TestEnumType:
         class SingleVar:
             Var = tuple_type_1_arg
 
+            type = Var
+
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
@@ -313,6 +338,8 @@ class TestEnumType:
         class SingleVar:
             Var = tuple_type_2_arg
 
+            type = Var
+
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
@@ -332,6 +359,8 @@ class TestEnumType:
         @enumclass
         class SingleVar:
             Var = struct_type
+
+            type = Var
 
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
@@ -454,3 +483,11 @@ class TestLoadRoundTrip:
         assert types_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarG(x=1, y=TestSubLoad.VarB())
         ]
+
+
+def test_partials(types_sim):
+    types_sim.process_event("partial", Partial(unit=UnitEnum.VarA()))
+    partial = types_sim.try_read_events("partial_output", Partial)[0]
+
+    assert partial.load is None
+    assert isinstance(partial.unit, UnitEnum.VarA)

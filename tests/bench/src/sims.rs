@@ -103,6 +103,14 @@ pub fn types_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
         .bind_endpoint(&mut bench, "input")
         .unwrap();
 
+    let output = event_queue_endpoint(&mut bench, SinkState::Enabled, "partial_output").unwrap();
+    model.partial_output.connect_sink(output);
+
+    EventSource::new()
+        .connect(complex_types::MyModel::partial_input, &model_addr)
+        .bind_endpoint(&mut bench, "partial")
+        .unwrap();
+
     // Assembly and initialization.
     Ok(bench.add_model(model, model_mbox, "model"))
 }
