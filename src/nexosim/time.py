@@ -627,10 +627,8 @@ class MonotonicTime:
                 nanos = "{:0>9}".format(self.nanos)
                 frac = "." + nanos.rstrip("0")
 
-        dt = (
-            datetime.datetime.fromtimestamp(float(self.secs))
-            .astimezone(datetime.UTC)
-            .replace(tzinfo=None)
+        dt = datetime.datetime.fromtimestamp(float(self.secs), tz=datetime.UTC).replace(
+            tzinfo=None
         )
 
         return str(dt) + frac

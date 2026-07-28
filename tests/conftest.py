@@ -16,7 +16,7 @@ def always_spawn():
 @pytest.fixture(scope="session")
 def coffee_server():
     """Spawn a simulation server set up with the coffee machine bench."""
-    address = "0.0.0.0:41635"
+    address = "127.0.0.1:41635"
     subprocess.run(
         shlex.split("cargo build --manifest-path tests/bench/Cargo.toml"), check=True
     )
@@ -43,7 +43,7 @@ def coffee(coffee_server):
 @pytest.fixture(scope="session")
 def rt_coffee_server():
     """Spawn a simulation server set up with the real time coffee machine bench."""
-    address = "0.0.0.0:41636"
+    address = "127.0.0.1:41636"
     subprocess.run(
         shlex.split("cargo build --manifest-path tests/bench/Cargo.toml"), check=True
     )
@@ -70,7 +70,7 @@ def rt_coffee(rt_coffee_server):
 @pytest.fixture(scope="session")
 def rt_coffee_ticker_server():
     """Spawn a simulation server set up with the real time coffee machine bench."""
-    address = "0.0.0.0:41637"
+    address = "127.0.0.1:41637"
     subprocess.run(
         shlex.split("cargo build --manifest-path tests/bench/Cargo.toml"), check=True
     )
@@ -97,7 +97,8 @@ def rt_coffee_ticker(rt_coffee_ticker_server):
 @pytest.fixture(scope="session")
 def types_bench_server():
     """Spawn a simulation server set up with bench2."""
-    address = "0.0.0.0:41637"
+    # Port 41638 to avoid conflict with rt_coffee_ticker_server which uses 41637.
+    address = "127.0.0.1:41638"
     subprocess.run(
         shlex.split("cargo build --manifest-path tests/bench/Cargo.toml"), check=True
     )

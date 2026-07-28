@@ -12,5 +12,7 @@ nexosim = { git = "https://github.com/asynchronics/nexosim.git", rev = "42eb361"
 nexosim-macros = "1.0.0"
 schemars = "1.0.4"
 serde = { version = "1.0", features = ["derive"] }
+
+[target.'cfg(unix)'.dependencies]
 signal-hook = "0.3"
 signal-hook-async-std = "0.2"

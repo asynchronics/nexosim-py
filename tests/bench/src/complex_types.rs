@@ -23,15 +23,32 @@ pub enum TestSubLoad {
     VarE { x: String, y: bool },
 }
 
+#[derive(Clone, Serialize, Deserialize, Message)]
+pub enum UnitEnum {
+    VarA,
+    VarB,
+}
+
+#[derive(Clone, Serialize, Deserialize, Message)]
+pub struct Partial {
+    unit: Option<UnitEnum>,
+    load: Option<TestLoad>,
+}
+
 /// MyModel.
 #[derive(Default, Deserialize, Serialize, Debug)]
 pub(crate) struct MyModel {
     pub(crate) output: Output<TestLoad>,
+    pub(crate) partial_output: Output<Partial>,
 }
 
 #[Model]
 impl MyModel {
     pub async fn my_input(&mut self, value: TestLoad) {
         self.output.send(value).await;
+    }
+
+    pub async fn partial_input(&mut self, partial: Partial) {
+        self.partial_output.send(partial).await;
     }
 }
