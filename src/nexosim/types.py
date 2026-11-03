@@ -792,7 +792,11 @@ def tuple_type(
 
 @typing.overload
 def tuple_type(
-    _0: TypeForm[_Arg0], _1: TypeForm[_Arg1], _2: TypeForm[_Arg2], _3: TypeForm[_Arg3], _4: TypeForm[_Arg4]
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
 ) -> type[TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]]: ...
 
 
