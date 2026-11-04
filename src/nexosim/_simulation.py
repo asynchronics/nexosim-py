@@ -3,7 +3,7 @@ import json
 import typing
 
 import cbor2
-import grpc  # type: ignore
+import grpc
 from google.protobuf.duration_pb2 import Duration as PbDuration
 from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
 
@@ -75,7 +75,7 @@ class Simulation:
             else None
         )
 
-        self._channel = grpc.insecure_channel(address, options)  # type: ignore
+        self._channel = grpc.insecure_channel(address, options)
         self._stub = simulation_pb2_grpc.SimulationStub(self._channel)
 
     def __enter__(self) -> typing.Self:
@@ -503,7 +503,7 @@ class Simulation:
         else:
             kwargs["duration"] = PbDuration(seconds=deadline.secs, nanos=deadline.nanos)
 
-        request = simulation_pb2.StepUntilRequest(**kwargs)  # type: ignore
+        request = simulation_pb2.StepUntilRequest(**kwargs)
         reply = self._stub.StepUntil(request)
 
         if reply.HasField("time"):
@@ -700,7 +700,7 @@ class Simulation:
                 for path in sinks
             ]
         )
-        reply = self._stub.GetEventSinkSchemas(request)  # type: ignore
+        reply = self._stub.GetEventSinkSchemas(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -878,7 +878,7 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
-        request = simulation_pb2.CancelEventRequest(key=key._key)  # type: ignore
+        request = simulation_pb2.CancelEventRequest(key=key._key)
         reply = self._stub.CancelEvent(request)
 
         if reply.HasField("error"):
