@@ -78,12 +78,12 @@ as an argument that can be used in the bench builder function.
     from nexosim import Simulation
 
     with Simulation("0.0.0.0:41633") as sim:
-            sim.build(123)
-            sim.init()
-            print(sim.process_query("replier"))
+        sim.build(123)
+        sim.init()
+        print(sim.process_query("replier"))
 
-        # Prints:
-        # [123]
+    # Prints:
+    # [123]
     ```
 === "Server"
     ```rust
@@ -139,10 +139,12 @@ The configuration object can be any serializable type:
     from nexosim import Simulation
     from dataclasses import dataclass
 
+
     @dataclass
     class ModelConfig:
         foo: int
         bar: str
+
 
     with Simulation("0.0.0.0:41633") as sim:
         sim.build(ModelConfig(123, "string"))
@@ -348,10 +350,10 @@ with Simulation("0.0.0.0:41633") as sim:
     sim.init()
     sim.step_until(MonotonicTime(1))
     sim.step_until(MonotonicTime(2))
-    print(sim.time()) # 1970-01-01 00:00:02
+    print(sim.time())  # 1970-01-01 00:00:02
 
     sim.step_until(Duration(2))
-    print(sim.time()) # 1970-01-01 00:00:04
+    print(sim.time())  # 1970-01-01 00:00:04
 ```
 
 The [`run()`][nexosim.Simulation.run] method processes all
@@ -389,6 +391,7 @@ synchronized with the system clock:
     from nexosim.exceptions import SimulationNotStartedError
     from nexosim.time import MonotonicTime, Duration
 
+
     async def run():
         async with Simulation("0.0.0.0:41633") as sim:
             await sim.build()
@@ -403,13 +406,16 @@ synchronized with the system clock:
                 print(f"Simulation halted at {time}")
                 print(await sim.try_read_events("output"))
 
+
     async def halt():
         async with Simulation("0.0.0.0:41633") as sim:
             await asyncio.sleep(2)
             await sim.halt()
 
+
     async def main():
         await asyncio.gather(run(), halt())
+
 
     asyncio.run(main())
 
@@ -491,12 +497,14 @@ parameter controls the type the read event will be mapped to.
     from dataclasses import dataclass
     from nexosim import Simulation
 
+
     @dataclass
     class OutputEvent:
         foo: int
         bar: str
 
-    with Simulation(address='localhost:41633') as sim:
+
+    with Simulation(address="localhost:41633") as sim:
         sim.build()
         sim.init()
 
@@ -573,12 +581,14 @@ from dataclasses import dataclass
 from nexosim import Simulation
 from nexosim.time import Duration
 
+
 @dataclass
 class OutputEvent:
     foo: int
     bar: str
 
-with Simulation(address='localhost:41633') as sim:
+
+with Simulation(address="localhost:41633") as sim:
     sim.build()
     sim.init()
 
@@ -608,7 +618,7 @@ Before the state can be restored the simulation must be rebuilt.
     ```python
     from nexosim import Simulation
 
-    with Simulation(address='localhost:41633') as sim:
+    with Simulation(address="localhost:41633") as sim:
         sim.build()
         sim.init()
 
@@ -701,6 +711,7 @@ synchronized with the system clock:
     from nexosim.aio import Simulation
     from nexosim.time import MonotonicTime, Duration
 
+
     async def run():
         async with Simulation("0.0.0.0:41633") as sim:
             await sim.build()
@@ -721,8 +732,10 @@ synchronized with the system clock:
             await asyncio.sleep(3)
             print(await sim.try_read_events("output"))
 
+
     async def main():
         await asyncio.gather(run(), read())
+
 
     asyncio.run(main())
 
