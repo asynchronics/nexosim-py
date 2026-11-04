@@ -4,8 +4,13 @@ import pytest
 import pytest_asyncio
 
 from nexosim.aio import Simulation
-from nexosim.exceptions import BenchNotBuiltError, SimulationNotStartedError
+from nexosim.exceptions import (
+    BenchAlreadyBuiltError,
+    BenchNotBuiltError,
+    SimulationNotStartedError,
+)
 from nexosim.time import Duration, MonotonicTime
+from nexosim.types import tuple_type
 
 
 @pytest.mark.slow
@@ -15,44 +20,45 @@ async def test_concurrent_event_and_read(rt_coffee):
     brew_time = Duration(1)
     timeout = Duration(2)
     initial_volume = 1e-3
-    simu = Simulation(rt_coffee)
 
-    async def run():
-        await simu.run()
+    async with Simulation(rt_coffee) as simu:
 
-    async def observe_brewing():
-        # brewing started
-        assert (await simu.read_event("flow_rate", timeout)) == pump_flow_rate
+        async def run():
+            await simu.run()
 
-        # brewing stopped
-        assert (await simu.read_event("flow_rate", timeout)) == 0.0
+        async def observe_brewing():
+            # brewing started
+            assert (await simu.read_event("flow_rate", timeout)) == pump_flow_rate
 
-    async def monitor_water():
-        water_sense = await simu.try_read_events("water_sense")
-        assert water_sense == ["NotEmpty"]
+            # brewing stopped
+            assert (await simu.read_event("flow_rate", timeout)) == 0.0
 
-    async def monitor_commands():
-        commands = await simu.try_read_events("pump_cmd")
-        assert commands == ["On", "Off"]
+        async def monitor_water():
+            water_sense = await simu.try_read_events("water_sense")
+            assert water_sense == ["NotEmpty"]
 
-    async def main_test():
-        await observe_brewing()
+        async def monitor_commands():
+            commands = await simu.try_read_events("pump_cmd")
+            assert commands == ["On", "Off"]
 
-        await asyncio.gather(monitor_water(), monitor_commands())
+        async def main_test():
+            await observe_brewing()
 
-        assert (await simu.try_read_events("latest_pump_cmd")) == ["Off"]
+            await asyncio.gather(monitor_water(), monitor_commands())
 
-    await simu.build(initial_volume)
+            assert (await simu.try_read_events("latest_pump_cmd")) == ["Off"]
 
-    await simu.init()
+        await simu.build(initial_volume)
 
-    await simu.process_event("brew_time", brew_time)
+        await simu.init()
 
-    await simu.schedule_event(Duration(1), "brew_cmd")
+        await simu.process_event("brew_time", brew_time)
 
-    await asyncio.gather(run(), main_test())
+        await simu.schedule_event(Duration(1), "brew_cmd")
 
-    assert await simu.time() == MonotonicTime(2, 0)
+        await asyncio.gather(run(), main_test())
+
+        assert await simu.time() == MonotonicTime(2, 0)
 
 
 @pytest_asyncio.fixture
@@ -76,6 +82,7 @@ async def rt_sim(rt_coffee):
 @pytest.mark.asyncio
 async def test_reinitialize_sim_losses_state(sim):
     await sim.step_until(Duration(1))
+    await sim.terminate()
     await sim.build()
     await sim.init()
 
@@ -291,6 +298,7 @@ async def test_save_and_restore(sim):
     assert await sim.time() == MonotonicTime(25, 0)
 
     # Restore the simulation state to before the step
+    await sim.terminate()
     await sim.build()
     await sim.restore(state)
     assert await sim.time() == MonotonicTime(0, 0)
@@ -310,6 +318,7 @@ async def test_save_restore_and_run(sim):
     assert await sim.time() == MonotonicTime(25, 0)
 
     # Restore the simulation state
+    await sim.terminate()
     await sim.build()
     await sim.restore_and_run(state)
 
@@ -329,13 +338,16 @@ async def test_save_restore_and_run_concurrent(rt_coffee_ticker):
         await rt_sim.step_until(MonotonicTime(1))
         assert await rt_sim.try_read_events("flow_rate") == [4.5e-6]
 
+        await rt_sim.terminate()
+
         # Restore the simulation state
         async def restore_and_run():
             await rt_sim.build()
+
             try:
                 await rt_sim.restore_and_run(state)
             except SimulationNotStartedError:
-                ...
+                pass
 
         async def stop_brewing_and_read():
             await asyncio.sleep(0.5)
@@ -457,4 +469,42 @@ async def test_inject_event_running_with_ticker(rt_coffee_ticker):
             await rt_sim.inject_event("brew_cmd")
 
         await asyncio.gather(run(), inject())
+
         assert await rt_sim.try_read_events("flow_rate") == [4.5e-06, 0.0]
+
+
+@pytest.mark.asyncio
+async def test_schedule_query(sim: Simulation):
+    query_task = asyncio.create_task(sim.schedule_query(Duration(1), "test_pump", "On"))
+
+    async def run():
+        await sim.step_until(Duration(2))
+
+    await asyncio.gather(query_task, run())
+
+    assert query_task.result() == [4.5e-6]
+
+
+@pytest.mark.asyncio
+async def test_schedule_query_reply_type(sim: Simulation):
+    class ReplyType(tuple_type(float)): ...
+
+    query_task = asyncio.create_task(
+        sim.schedule_query(Duration(1), "test_pump", "On", ReplyType)
+    )
+
+    async def run():
+        await sim.step_until(Duration(2))
+
+    await asyncio.gather(query_task, run())
+
+    assert isinstance(query_task.result()[0], ReplyType)
+
+
+@pytest.mark.asyncio
+async def bench_already_built(coffee):
+    """A started coffee bench simulation object."""
+    async with Simulation(coffee) as sim:
+        await sim.build()
+        with pytest.raises(BenchAlreadyBuiltError):
+            await sim.build()

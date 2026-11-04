@@ -61,6 +61,9 @@ class SimulationStub:
     def ProcessEvent(
         self, request: simulation_pb2.ProcessEventRequest
     ) -> simulation_pb2.ProcessEventReply: ...
+    def ScheduleQuery(
+        self, request: simulation_pb2.ScheduleQueryRequest
+    ) -> simulation_pb2.ScheduleQueryReply: ...
     def ProcessQuery(
         self, request: simulation_pb2.ProcessQueryRequest
     ) -> simulation_pb2.ProcessQueryReply: ...

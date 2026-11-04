@@ -84,7 +84,7 @@ pub fn rt_coffee_bench_ticker(init_tank_volume: Option<f64>) -> Result<SimInit, 
     ))
 }
 
-pub fn types_bench(_cfg: complex_types::TestLoad) -> Result<SimInit, Box<dyn Error>> {
+pub fn types_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
     let mut model = complex_types::MyModel::default();
 
     // Mailboxes.
@@ -101,6 +101,14 @@ pub fn types_bench(_cfg: complex_types::TestLoad) -> Result<SimInit, Box<dyn Err
     EventSource::new()
         .connect(complex_types::MyModel::my_input, &model_addr)
         .bind_endpoint(&mut bench, "input")
+        .unwrap();
+
+    let output = event_queue_endpoint(&mut bench, SinkState::Enabled, "partial_output").unwrap();
+    model.partial_output.connect_sink(output);
+
+    EventSource::new()
+        .connect(complex_types::MyModel::partial_input, &model_addr)
+        .bind_endpoint(&mut bench, "partial")
         .unwrap();
 
     // Assembly and initialization.

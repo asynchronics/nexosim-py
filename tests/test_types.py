@@ -1,9 +1,79 @@
 import dataclasses
+from typing import Optional
 
 import pytest
 
+from nexosim import Simulation
 from nexosim._config import cbor2_converter
 from nexosim.types import UnitType, enumclass, tuple_type
+
+
+@enumclass
+class TestSubLoad:
+    class VarA(UnitType): ...
+
+    @dataclasses.dataclass
+    class VarB: ...
+
+    class VarC(tuple_type(int)): ...
+
+    class VarD(tuple_type(str, float)): ...
+
+    @dataclasses.dataclass
+    class VarE:
+        x: str
+        y: bool
+
+    type = VarA | VarB | VarC | VarD | VarE
+
+
+@enumclass
+class TestLoad:
+    class VarA(tuple_type()): ...
+
+    @dataclasses.dataclass
+    class VarB: ...
+
+    class VarC(tuple_type(int)): ...
+
+    class VarD(tuple_type(str, float)): ...
+
+    @dataclasses.dataclass
+    class VarE:
+        x: str
+        y: bool
+
+    class VarF(tuple_type(TestSubLoad.type)): ...
+
+    @dataclasses.dataclass
+    class VarG:
+        x: int
+        y: TestSubLoad.type
+
+    type = VarA | VarB | VarC | VarD | VarE | VarF | VarG
+
+
+@enumclass
+class UnitEnum:
+    class VarA(UnitType): ...
+
+    class VarB(UnitType): ...
+
+    type = VarA | VarB
+
+
+@dataclasses.dataclass
+class Partial:
+    unit: Optional[UnitEnum.type] = None
+    load: Optional[TestLoad.type] = None
+
+
+@pytest.fixture
+def types_sim(types_bench):
+    with Simulation(types_bench) as sim:
+        sim.build()
+        sim.init()
+        yield sim
 
 
 @pytest.fixture
@@ -139,7 +209,7 @@ class TestEnumType:
         cls = enum_type.MyUnitVariant
         f = cbor2_converter.get_unstructure_hook(cls)
 
-        assert f(cls) == {"MyUnitVariant": None}
+        assert f(cls) == "MyUnitVariant"
 
     def test_unstructure_0_arg_tuple_variant(self, enum_type):
         cls = enum_type.My0ArgTupleVariant
@@ -202,6 +272,8 @@ class TestEnumType:
         class SingleVar:
             Var = unit_type
 
+            type = Var
+
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
@@ -215,12 +287,14 @@ class TestEnumType:
         cls = SingleVar.Var
         f = cbor2_converter.get_unstructure_hook(cls)
 
-        assert f(cls) == {"Var": None}
+        assert f(cls) == "Var"
 
     def test_structure_single_variant_0_arg_tuple(self, tuple_type_0_arg):
         @enumclass
         class SingleVar:
             Var = tuple_type_0_arg
+
+            type = Var
 
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
@@ -242,6 +316,8 @@ class TestEnumType:
         class SingleVar:
             Var = tuple_type_1_arg
 
+            type = Var
+
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
@@ -262,6 +338,8 @@ class TestEnumType:
         class SingleVar:
             Var = tuple_type_2_arg
 
+            type = Var
+
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
@@ -281,6 +359,8 @@ class TestEnumType:
         @enumclass
         class SingleVar:
             Var = struct_type
+
+            type = Var
 
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
@@ -330,3 +410,84 @@ class TestEnumType:
 
             @enumclass
             class _: ...
+
+
+class TestLoadRoundTrip:
+    def test_var_a(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarA())
+        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarA()]
+
+    def test_var_b(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarB())
+        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarB()]
+
+    def test_var_c(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarC(42))
+        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarC(42)]
+
+    def test_var_d(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarD("hello", 3.14))
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarD("hello", 3.14)
+        ]
+
+    def test_var_e(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarE(x="hello", y=True))
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarE(x="hello", y=True)
+        ]
+
+    def test_var_f_sub_var_a(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarA()))
+        result = types_sim.try_read_events("output", TestLoad.type)
+        assert len(result) == 1
+        assert isinstance(result[0], TestLoad.VarF)
+        assert isinstance(result[0]._0, TestSubLoad.VarA)
+
+    def test_var_f_sub_var_b(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarB()))
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarB())
+        ]
+
+    def test_var_f_sub_var_c(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarC(7)))
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarC(7))
+        ]
+
+    def test_var_f_sub_var_d(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarD("x", 1.0)))
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarD("x", 1.0))
+        ]
+
+    def test_var_f_sub_var_e(self, types_sim):
+        types_sim.process_event(
+            "input", TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))
+        )
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))
+        ]
+
+    def test_var_g_sub_var_a(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarA()))
+        result = types_sim.try_read_events("output", TestLoad.type)
+        assert len(result) == 1
+        assert isinstance(result[0], TestLoad.VarG)
+        assert result[0].x == 1
+        assert isinstance(result[0].y, TestSubLoad.VarA)
+
+    def test_var_g_sub_var_b(self, types_sim):
+        types_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarB()))
+        assert types_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarG(x=1, y=TestSubLoad.VarB())
+        ]
+
+
+def test_partials(types_sim):
+    types_sim.process_event("partial", Partial(unit=UnitEnum.VarA()))
+    partial = types_sim.try_read_events("partial_output", Partial)[0]
+
+    assert partial.load is None
+    assert isinstance(partial.unit, UnitEnum.VarA)

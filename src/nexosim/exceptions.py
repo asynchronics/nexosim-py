@@ -111,6 +111,15 @@ class InvalidBenchConfigError(SimulationError):
     pass
 
 
+class BenchAlreadyBuiltError(SimulationError):
+    """
+    Raised when an attempt to build the simulation failed because the
+    simulation was already built.
+    """
+
+    pass
+
+
 class SimulationPanicError(SimulationError):
     """Raised when a panic is caught during execution."""
 

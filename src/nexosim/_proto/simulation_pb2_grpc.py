@@ -148,6 +148,11 @@ class SimulationStub(object):
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.ProcessEventRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ProcessEventReply.FromString,
                 _registered_method=True)
+        self.ScheduleQuery = channel.unary_unary(
+                '/simulation.v1.Simulation/ScheduleQuery',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.ScheduleQueryRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.ScheduleQueryReply.FromString,
+                _registered_method=True)
         self.ProcessQuery = channel.unary_unary(
                 '/simulation.v1.Simulation/ProcessQuery',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.ProcessQueryRequest.SerializeToString,
@@ -314,6 +319,12 @@ class SimulationServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ScheduleQuery(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def ProcessQuery(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -456,6 +467,11 @@ def add_SimulationServicer_to_server(servicer, server):
                     servicer.ProcessEvent,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ProcessEventRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.ProcessEventReply.SerializeToString,
+            ),
+            'ScheduleQuery': grpc.unary_unary_rpc_method_handler(
+                    servicer.ScheduleQuery,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.ScheduleQueryRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.ScheduleQueryReply.SerializeToString,
             ),
             'ProcessQuery': grpc.unary_unary_rpc_method_handler(
                     servicer.ProcessQuery,
@@ -1081,6 +1097,33 @@ class Simulation(object):
             '/simulation.v1.Simulation/ProcessEvent',
             nexosim_dot___proto_dot_simulation__pb2.ProcessEventRequest.SerializeToString,
             nexosim_dot___proto_dot_simulation__pb2.ProcessEventReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ScheduleQuery(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simulation.v1.Simulation/ScheduleQuery',
+            nexosim_dot___proto_dot_simulation__pb2.ScheduleQueryRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.ScheduleQueryReply.FromString,
             options,
             channel_credentials,
             insecure,
