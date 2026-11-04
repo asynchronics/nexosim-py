@@ -184,12 +184,12 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
-    async def terminate(self) -> None:
+    async def tear_down(self) -> None:
         """
         Terminates a simulation.
         """
-        request = simulation_pb2.TerminateRequest()
-        reply = await self._stub.Terminate(request)  # type: ignore
+        request = simulation_pb2.TearDownRequest()
+        reply = await self._stub.TearDown(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)

@@ -135,8 +135,8 @@ class SimulationNotStartedError(SimulationError):
 class SimulationTerminatedError(SimulationError):
     """
     Raised when the simulation has been terminated due to an earlier deadlock,
-    message loss, missing recipient, model panic, timeout, or synchronization
-    loss.
+    message loss, missing recipient, model panic, timeout, synchronization
+    loss or a client-triggered teardown.
     """
 
     pass

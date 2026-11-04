@@ -58,10 +58,10 @@ class SimulationStub(object):
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.HaltReply.FromString,
                 _registered_method=True)
-        self.Terminate = channel.unary_unary(
-                '/simulation.v1.Simulation/Terminate',
-                request_serializer=nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.SerializeToString,
-                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.TerminateReply.FromString,
+        self.TearDown = channel.unary_unary(
+                '/simulation.v1.Simulation/TearDown',
+                request_serializer=nexosim_dot___proto_dot_simulation__pb2.TearDownRequest.SerializeToString,
+                response_deserializer=nexosim_dot___proto_dot_simulation__pb2.TearDownReply.FromString,
                 _registered_method=True)
         self.Save = channel.unary_unary(
                 '/simulation.v1.Simulation/Save',
@@ -211,7 +211,7 @@ class SimulationServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def Terminate(self, request, context):
+    def TearDown(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -378,10 +378,10 @@ def add_SimulationServicer_to_server(servicer, server):
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.HaltRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.HaltReply.SerializeToString,
             ),
-            'Terminate': grpc.unary_unary_rpc_method_handler(
-                    servicer.Terminate,
-                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.FromString,
-                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.TerminateReply.SerializeToString,
+            'TearDown': grpc.unary_unary_rpc_method_handler(
+                    servicer.TearDown,
+                    request_deserializer=nexosim_dot___proto_dot_simulation__pb2.TearDownRequest.FromString,
+                    response_serializer=nexosim_dot___proto_dot_simulation__pb2.TearDownReply.SerializeToString,
             ),
             'Save': grpc.unary_unary_rpc_method_handler(
                     servicer.Save,
@@ -622,7 +622,7 @@ class Simulation(object):
             _registered_method=True)
 
     @staticmethod
-    def Terminate(request,
+    def TearDown(request,
             target,
             options=(),
             channel_credentials=None,
@@ -635,9 +635,9 @@ class Simulation(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/simulation.v1.Simulation/Terminate',
-            nexosim_dot___proto_dot_simulation__pb2.TerminateRequest.SerializeToString,
-            nexosim_dot___proto_dot_simulation__pb2.TerminateReply.FromString,
+            '/simulation.v1.Simulation/TearDown',
+            nexosim_dot___proto_dot_simulation__pb2.TearDownRequest.SerializeToString,
+            nexosim_dot___proto_dot_simulation__pb2.TearDownReply.FromString,
             options,
             channel_credentials,
             insecure,

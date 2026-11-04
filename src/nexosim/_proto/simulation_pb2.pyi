@@ -202,11 +202,11 @@ class RestoreAndRunReply(_message.Message):
     error: Error
     def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., error: _Optional[_Union[Error, _Mapping]] = ...) -> None: ...
 
-class TerminateRequest(_message.Message):
+class TearDownRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
-class TerminateReply(_message.Message):
+class TearDownReply(_message.Message):
     __slots__ = ("empty", "error")
     EMPTY_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]

@@ -37,7 +37,7 @@ def coffee_server():
 def coffee(coffee_server):
     yield coffee_server
     with Simulation(coffee_server) as sim:
-        sim.terminate()
+        sim.tear_down()
 
 
 @pytest.fixture(scope="session")
@@ -64,7 +64,7 @@ def rt_coffee_server():
 def rt_coffee(rt_coffee_server):
     yield rt_coffee_server
     with Simulation(rt_coffee_server) as sim:
-        sim.terminate()
+        sim.tear_down()
 
 
 @pytest.fixture(scope="session")
@@ -91,7 +91,7 @@ def rt_coffee_ticker_server():
 def rt_coffee_ticker(rt_coffee_ticker_server):
     yield rt_coffee_ticker_server
     with Simulation(rt_coffee_ticker_server) as sim:
-        sim.terminate()
+        sim.tear_down()
 
 
 @pytest.fixture(scope="session")
@@ -117,4 +117,4 @@ def types_bench_server():
 def types_bench(types_bench_server):
     yield types_bench_server
     with Simulation(types_bench_server) as sim:
-        sim.terminate()
+        sim.tear_down()

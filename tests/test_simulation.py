@@ -23,7 +23,7 @@ def sim(coffee):
 
 def test_reinitialize_sim_losses_state(sim):
     sim.step_until(Duration(1))
-    sim.terminate()
+    sim.tear_down()
     sim.build()
     sim.init()
 
@@ -33,7 +33,7 @@ def test_reinitialize_sim_losses_state(sim):
 def test_terminate_start(sim):
     sim.step_until(Duration(1))
     assert sim.time() == MonotonicTime(1, 0)
-    sim.terminate()
+    sim.tear_down()
     with pytest.raises(SimulationNotStartedError):
         sim.time()
     sim.build()
@@ -150,7 +150,7 @@ def test_init_sim_not_built(coffee):
 
 
 def test_init_time(sim):
-    sim.terminate()
+    sim.tear_down()
     sim.build()
     t0 = MonotonicTime(1, 0)
     sim.init(t0)
@@ -164,7 +164,7 @@ def test_save_and_restore(sim):
     sim.step()
     assert sim.try_read_events("flow_rate") == [4.5e-6, 0.0]
     assert sim.time() == MonotonicTime(25, 0)
-    sim.terminate()
+    sim.tear_down()
 
     # Restore the simulation state to before the step
     sim.build()
@@ -184,7 +184,7 @@ def test_save_restore_and_run(sim):
     assert sim.try_read_events("flow_rate") == [4.5e-6, 0.0]
     assert sim.time() == MonotonicTime(25, 0)
 
-    sim.terminate()
+    sim.tear_down()
 
     # Restore the simulation state to before the step
     sim.build()
