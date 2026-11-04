@@ -63,17 +63,17 @@ class SimulationStub(object):
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.TearDownRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.TearDownReply.FromString,
                 _registered_method=True)
-        self.Save = channel.unary_unary(
+        self.Save = channel.unary_stream(
                 '/simulation.v1.Simulation/Save',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.SaveRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.SaveReply.FromString,
                 _registered_method=True)
-        self.Restore = channel.unary_unary(
+        self.Restore = channel.stream_unary(
                 '/simulation.v1.Simulation/Restore',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreReply.FromString,
                 _registered_method=True)
-        self.RestoreAndRun = channel.unary_unary(
+        self.RestoreAndRun = channel.stream_unary(
                 '/simulation.v1.Simulation/RestoreAndRun',
                 request_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreAndRunRequest.SerializeToString,
                 response_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreAndRunReply.FromString,
@@ -223,13 +223,13 @@ class SimulationServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def Restore(self, request, context):
+    def Restore(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def RestoreAndRun(self, request, context):
+    def RestoreAndRun(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -383,17 +383,17 @@ def add_SimulationServicer_to_server(servicer, server):
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.TearDownRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.TearDownReply.SerializeToString,
             ),
-            'Save': grpc.unary_unary_rpc_method_handler(
+            'Save': grpc.unary_stream_rpc_method_handler(
                     servicer.Save,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.SaveRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.SaveReply.SerializeToString,
             ),
-            'Restore': grpc.unary_unary_rpc_method_handler(
+            'Restore': grpc.stream_unary_rpc_method_handler(
                     servicer.Restore,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreReply.SerializeToString,
             ),
-            'RestoreAndRun': grpc.unary_unary_rpc_method_handler(
+            'RestoreAndRun': grpc.stream_unary_rpc_method_handler(
                     servicer.RestoreAndRun,
                     request_deserializer=nexosim_dot___proto_dot_simulation__pb2.RestoreAndRunRequest.FromString,
                     response_serializer=nexosim_dot___proto_dot_simulation__pb2.RestoreAndRunReply.SerializeToString,
@@ -659,7 +659,7 @@ class Simulation(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
+        return grpc.experimental.unary_stream(
             request,
             target,
             '/simulation.v1.Simulation/Save',
@@ -676,7 +676,7 @@ class Simulation(object):
             _registered_method=True)
 
     @staticmethod
-    def Restore(request,
+    def Restore(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -686,8 +686,8 @@ class Simulation(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
+        return grpc.experimental.stream_unary(
+            request_iterator,
             target,
             '/simulation.v1.Simulation/Restore',
             nexosim_dot___proto_dot_simulation__pb2.RestoreRequest.SerializeToString,
@@ -703,7 +703,7 @@ class Simulation(object):
             _registered_method=True)
 
     @staticmethod
-    def RestoreAndRun(request,
+    def RestoreAndRun(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -713,8 +713,8 @@ class Simulation(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
+        return grpc.experimental.stream_unary(
+            request_iterator,
             target,
             '/simulation.v1.Simulation/RestoreAndRun',
             nexosim_dot___proto_dot_simulation__pb2.RestoreAndRunRequest.SerializeToString,

@@ -35,6 +35,12 @@ class EventKey:
     _key: PbEventKey
 
 
+_CHUNK_SIZE = 64 * 1024
+"""
+Chunk size (64 KiB) for `restore` and `restore_and_run` streaming requests.
+"""
+
+
 class Simulation:
     """A handle to the remote simulation bench.
 
@@ -255,12 +261,14 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
         request = simulation_pb2.SaveRequest()
-        reply = self._stub.Save(request)
 
-        if reply.HasField("error"):
-            raise _to_error(reply.error)
+        chunks = []
+        for reply in self._stub.Save(request):
+            if reply.HasField("error"):
+                raise _to_error(reply.error)
+            chunks.append(reply.state)
 
-        return reply.state
+        return b"".join(chunks)
 
     def restore(self, state: bytes) -> None:
         """
@@ -287,8 +295,12 @@ class Simulation:
                 - [`RestoreError`][nexosim.exceptions.RestoreError]
 
         """
-        request = simulation_pb2.RestoreRequest(state=state)
-        reply = self._stub.Restore(request)
+        reply = self._stub.Restore(
+            (
+                simulation_pb2.RestoreRequest(state=state[i : i + _CHUNK_SIZE])
+                for i in range(0, len(state), _CHUNK_SIZE)
+            )
+        )
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -332,9 +344,12 @@ class Simulation:
                 - [`SimulationPanicError`][nexosim.exceptions.SimulationPanicError]
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
         """
-
-        request = simulation_pb2.RestoreAndRunRequest(state=state)
-        reply = self._stub.RestoreAndRun(request)
+        reply = self._stub.RestoreAndRun(
+            (
+                simulation_pb2.RestoreAndRunRequest(state=state[i : i + _CHUNK_SIZE])
+                for i in range(0, len(state), _CHUNK_SIZE)
+            )
+        )
 
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)

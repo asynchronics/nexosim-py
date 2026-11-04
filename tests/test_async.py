@@ -79,6 +79,14 @@ async def rt_sim(rt_coffee):
         yield sim
 
 
+@pytest_asyncio.fixture
+async def payload_sim(payload_bench):
+    async with Simulation(payload_bench) as sim:
+        await sim.build()
+        await sim.init()
+        yield sim
+
+
 @pytest.mark.asyncio
 async def test_reinitialize_sim_losses_state(sim):
     await sim.step_until(Duration(1))
@@ -309,6 +317,25 @@ async def test_save_and_restore(sim):
 
 
 @pytest.mark.asyncio
+async def test_save_and_restore_large_state(payload_sim):
+    mem_size = 5 * 1024 * 1024  # 5 MB
+    await payload_sim.process_event("mem_resize", mem_size)
+    assert (await payload_sim.process_query("mem_size"))[0] == mem_size
+    state = await payload_sim.save()
+
+    # Continue with the simulation
+    await payload_sim.process_event("mem_resize", 10)
+    assert (await payload_sim.process_query("mem_size"))[0] == 10
+
+    # Restore the saved simulation state.
+    await payload_sim.tear_down()
+    await payload_sim.build()
+    await payload_sim.restore(state)
+
+    assert (await payload_sim.process_query("mem_size"))[0] == mem_size
+
+
+@pytest.mark.asyncio
 async def test_save_restore_and_run(sim):
     await sim.process_event("brew_cmd")
     state = await sim.save()
@@ -324,6 +351,25 @@ async def test_save_restore_and_run(sim):
 
     assert await sim.time() == MonotonicTime(25, 0)
     assert await sim.try_read_events("flow_rate") == [0.0]
+
+
+@pytest.mark.asyncio
+async def test_save_restore_and_run_large_state(payload_sim):
+    mem_size = 5 * 1024 * 1024  # 5 MB
+    await payload_sim.process_event("mem_resize", mem_size)
+    assert (await payload_sim.process_query("mem_size"))[0] == mem_size
+    state = await payload_sim.save()
+
+    # Continue with the simulation
+    await payload_sim.process_event("mem_resize", 10)
+    assert (await payload_sim.process_query("mem_size"))[0] == 10
+
+    # Restore the saved simulation state.
+    await payload_sim.tear_down()
+    await payload_sim.build()
+    await payload_sim.restore_and_run(state)
+
+    assert (await payload_sim.process_query("mem_size"))[0] == mem_size
 
 
 @pytest.mark.asyncio

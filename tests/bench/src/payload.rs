@@ -52,3 +52,19 @@ impl MyModel {
         self.partial_output.send(partial).await;
     }
 }
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub(crate) struct Memory {
+    data: Vec<u8>,
+}
+
+#[Model]
+impl Memory {
+    pub(crate) fn resize(&mut self, n: usize) {
+        self.data.resize(n, 0);
+    }
+
+    pub(crate) async fn size(&mut self) -> usize {
+        self.data.len()
+    }
+}
