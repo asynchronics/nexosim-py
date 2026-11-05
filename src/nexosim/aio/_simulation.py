@@ -228,7 +228,7 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def save(self) -> bytes:
+    async def save(self) -> bytearray:
         """
         Saves and returns the current simulation state in a serialized form.
 
@@ -248,15 +248,15 @@ class Simulation:
         """
         request = simulation_pb2.SaveRequest()
 
-        chunks = []
+        chunks = bytearray()
         async for reply in self._stub.Save(request):  # type: ignore
             if reply.HasField("error"):
                 raise _to_error(reply.error)
-            chunks.append(reply.state)
+            chunks += reply.state
 
-        return b"".join(chunks)
+        return chunks
 
-    async def restore(self, state: bytes) -> None:
+    async def restore(self, state: bytes | bytearray) -> None:
         """
         Restores the simulation from a serialized state.
 
@@ -283,7 +283,7 @@ class Simulation:
         """
         reply = await self._stub.Restore(
             (
-                simulation_pb2.RestoreRequest(state=state[i : i + _CHUNK_SIZE])
+                simulation_pb2.RestoreRequest(state=bytes(state[i : i + _CHUNK_SIZE]))
                 for i in range(0, len(state), _CHUNK_SIZE)
             )
         )  # type: ignore
@@ -291,7 +291,7 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def restore_and_run(self, state: bytes) -> MonotonicTime:
+    async def restore_and_run(self, state: bytes | bytearray) -> MonotonicTime:
         """
         Restores the simulation from a serialized state and runs the simulation.
 
@@ -333,7 +333,9 @@ class Simulation:
 
         reply = await self._stub.RestoreAndRun(
             (
-                simulation_pb2.RestoreAndRunRequest(state=state[i : i + _CHUNK_SIZE])
+                simulation_pb2.RestoreAndRunRequest(
+                    state=bytes(state[i : i + _CHUNK_SIZE])
+                )
                 for i in range(0, len(state), _CHUNK_SIZE)
             )
         )  # type: ignore

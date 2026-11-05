@@ -38,7 +38,7 @@ def test_reinitialize_sim_losses_state(sim):
     assert sim.time() == MonotonicTime(0, 0)
 
 
-def test_terminate_start(sim):
+def test_tear_down_start(sim):
     sim.step_until(Duration(1))
     assert sim.time() == MonotonicTime(1, 0)
     sim.tear_down()
@@ -184,24 +184,6 @@ def test_save_and_restore(sim):
     assert sim.try_read_events("flow_rate") == [0.0]
 
 
-def test_save_and_restore_large_state(payload_sim):
-    mem_size = 5 * 1024 * 1024  # 5 MB
-    payload_sim.process_event("mem_resize", mem_size)
-    assert payload_sim.process_query("mem_size")[0] == mem_size
-    state = payload_sim.save()
-
-    # Continue with the simulation
-    payload_sim.process_event("mem_resize", 10)
-    assert payload_sim.process_query("mem_size")[0] == 10
-
-    # Restore the saved simulation state.
-    payload_sim.tear_down()
-    payload_sim.build()
-    payload_sim.restore(state)
-
-    assert payload_sim.process_query("mem_size")[0] == mem_size
-
-
 def test_save_restore_and_run(sim):
     sim.process_event("brew_cmd")
     state = sim.save()
@@ -220,7 +202,8 @@ def test_save_restore_and_run(sim):
     assert sim.try_read_events("flow_rate") == [0.0]
 
 
-def test_save_restore_and_run_large_state(payload_sim):
+@pytest.mark.parametrize("restore_method", ["restore", "restore_and_run"])
+def test_save_and_restore_large_state(payload_sim, restore_method):
     mem_size = 5 * 1024 * 1024  # 5 MB
     payload_sim.process_event("mem_resize", mem_size)
     assert payload_sim.process_query("mem_size")[0] == mem_size
@@ -233,7 +216,7 @@ def test_save_restore_and_run_large_state(payload_sim):
     # Restore the saved simulation state.
     payload_sim.tear_down()
     payload_sim.build()
-    payload_sim.restore_and_run(state)
+    getattr(payload_sim, restore_method)(state)
 
     assert payload_sim.process_query("mem_size")[0] == mem_size
 

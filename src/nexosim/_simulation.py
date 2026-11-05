@@ -243,7 +243,7 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    def save(self) -> bytes:
+    def save(self) -> bytearray:
         """
         Saves and returns the current simulation state in a serialized form.
 
@@ -262,15 +262,15 @@ class Simulation:
         """
         request = simulation_pb2.SaveRequest()
 
-        chunks = []
+        state = bytearray()
         for reply in self._stub.Save(request):
             if reply.HasField("error"):
                 raise _to_error(reply.error)
-            chunks.append(reply.state)
+            state += reply.state
 
-        return b"".join(chunks)
+        return state
 
-    def restore(self, state: bytes) -> None:
+    def restore(self, state: bytes | bytearray) -> None:
         """
         Restores the simulation from a serialized state.
 
@@ -297,7 +297,7 @@ class Simulation:
         """
         reply = self._stub.Restore(
             (
-                simulation_pb2.RestoreRequest(state=state[i : i + _CHUNK_SIZE])
+                simulation_pb2.RestoreRequest(state=bytes(state[i : i + _CHUNK_SIZE]))
                 for i in range(0, len(state), _CHUNK_SIZE)
             )
         )
@@ -305,7 +305,7 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    def restore_and_run(self, state: bytes) -> MonotonicTime:
+    def restore_and_run(self, state: bytes | bytearray) -> MonotonicTime:
         """
         Restores the simulation from a serialized state and runs the simulation.
 
@@ -346,7 +346,9 @@ class Simulation:
         """
         reply = self._stub.RestoreAndRun(
             (
-                simulation_pb2.RestoreAndRunRequest(state=state[i : i + _CHUNK_SIZE])
+                simulation_pb2.RestoreAndRunRequest(
+                    state=bytes(state[i : i + _CHUNK_SIZE])
+                )
                 for i in range(0, len(state), _CHUNK_SIZE)
             )
         )
