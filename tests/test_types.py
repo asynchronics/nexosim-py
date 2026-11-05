@@ -155,12 +155,33 @@ class TestUnitType:
     def test_structure_hook(self, unit_type):
         f = cbor2_converter.get_structure_hook(unit_type)
 
-        assert isinstance(f(None, unit_type), unit_type)
+        assert f(None, unit_type) == unit_type()
 
     def test_unstructure_hook(self, unit_type):
         f = cbor2_converter.get_unstructure_hook(unit_type)
 
         assert f(unit_type()) is None
+
+    def test_eq(self, unit_type):
+        assert unit_type() == unit_type()
+
+    def test_eq_struct_holding_unit_type(self):
+
+        class MyType(UnitType): ...
+
+        @dataclasses.dataclass
+        class A:
+            u: MyType
+
+        assert A(MyType()) == A(MyType())
+
+    def test_eq_enum_unit_variant(self, enum_type):
+        assert enum_type.MyUnitVariant() == enum_type.MyUnitVariant()
+
+    def test_eq_different_types(self, unit_type):
+        class MyType(UnitType): ...
+
+        assert unit_type() != MyType()
 
 
 class TestTupleType:
@@ -239,7 +260,7 @@ class TestEnumType:
         cls = enum_type.MyUnitVariant
         f = cbor2_converter.get_structure_hook(enum_type.type)
 
-        assert isinstance(f("MyUnitVariant", enum_type.type), cls)
+        assert f("MyUnitVariant", enum_type.type) == cls()
 
     def test_structure_0_arg_tuple_variant(self, enum_type):
         cls = enum_type.My0ArgTupleVariant
@@ -277,7 +298,7 @@ class TestEnumType:
         cls = SingleVar.Var
         f = cbor2_converter.get_structure_hook(SingleVar.type)
 
-        assert isinstance(f("Var", SingleVar.type), cls)
+        assert f("Var", SingleVar.type) == cls()
 
     def test_unstructure_single_variant_unit(self, unit_type):
         @enumclass
@@ -492,4 +513,4 @@ def test_partials(payload_sim):
     partial = payload_sim.try_read_events("partial_output", Partial)[0]
 
     assert partial.load is None
-    assert isinstance(partial.unit, UnitEnum.VarA)
+    assert partial.unit == UnitEnum.VarA()
