@@ -21,19 +21,27 @@ def sim(coffee):
         yield sim
 
 
+@pytest.fixture
+def payload_sim(payload_bench):
+    with Simulation(payload_bench) as sim:
+        sim.build()
+        sim.init()
+        yield sim
+
+
 def test_reinitialize_sim_losses_state(sim):
     sim.step_until(Duration(1))
-    sim.terminate()
+    sim.tear_down()
     sim.build()
     sim.init()
 
     assert sim.time() == MonotonicTime(0, 0)
 
 
-def test_terminate_start(sim):
+def test_tear_down_start(sim):
     sim.step_until(Duration(1))
     assert sim.time() == MonotonicTime(1, 0)
-    sim.terminate()
+    sim.tear_down()
     with pytest.raises(SimulationNotStartedError):
         sim.time()
     sim.build()
@@ -150,7 +158,7 @@ def test_init_sim_not_built(coffee):
 
 
 def test_init_time(sim):
-    sim.terminate()
+    sim.tear_down()
     sim.build()
     t0 = MonotonicTime(1, 0)
     sim.init(t0)
@@ -164,7 +172,7 @@ def test_save_and_restore(sim):
     sim.step()
     assert sim.try_read_events("flow_rate") == [4.5e-6, 0.0]
     assert sim.time() == MonotonicTime(25, 0)
-    sim.terminate()
+    sim.tear_down()
 
     # Restore the simulation state to before the step
     sim.build()
@@ -184,7 +192,7 @@ def test_save_restore_and_run(sim):
     assert sim.try_read_events("flow_rate") == [4.5e-6, 0.0]
     assert sim.time() == MonotonicTime(25, 0)
 
-    sim.terminate()
+    sim.tear_down()
 
     # Restore the simulation state to before the step
     sim.build()
@@ -192,6 +200,25 @@ def test_save_restore_and_run(sim):
 
     assert sim.time() == MonotonicTime(25, 0)
     assert sim.try_read_events("flow_rate") == [0.0]
+
+
+@pytest.mark.parametrize("restore_method", ["restore", "restore_and_run"])
+def test_save_and_restore_large_state(payload_sim, restore_method):
+    mem_size = 5 * 1024 * 1024  # 5 MB
+    payload_sim.process_event("mem_resize", mem_size)
+    assert payload_sim.process_query("mem_size")[0] == mem_size
+    state = payload_sim.save()
+
+    # Continue with the simulation
+    payload_sim.process_event("mem_resize", 10)
+    assert payload_sim.process_query("mem_size")[0] == 10
+
+    # Restore the saved simulation state.
+    payload_sim.tear_down()
+    payload_sim.build()
+    getattr(payload_sim, restore_method)(state)
+
+    assert payload_sim.process_query("mem_size")[0] == mem_size
 
 
 def test_list_event_sources(sim):

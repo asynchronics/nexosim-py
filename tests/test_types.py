@@ -69,8 +69,8 @@ class Partial:
 
 
 @pytest.fixture
-def types_sim(types_bench):
-    with Simulation(types_bench) as sim:
+def payload_sim(payload_bench):
+    with Simulation(payload_bench) as sim:
         sim.build()
         sim.init()
         yield sim
@@ -413,81 +413,83 @@ class TestEnumType:
 
 
 class TestLoadRoundTrip:
-    def test_var_a(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarA())
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarA()]
+    def test_var_a(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarA())
+        assert payload_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarA()]
 
-    def test_var_b(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarB())
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarB()]
+    def test_var_b(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarB())
+        assert payload_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarB()]
 
-    def test_var_c(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarC(42))
-        assert types_sim.try_read_events("output", TestLoad.type) == [TestLoad.VarC(42)]
+    def test_var_c(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarC(42))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
+            TestLoad.VarC(42)
+        ]
 
-    def test_var_d(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarD("hello", 3.14))
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+    def test_var_d(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarD("hello", 3.14))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarD("hello", 3.14)
         ]
 
-    def test_var_e(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarE(x="hello", y=True))
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+    def test_var_e(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarE(x="hello", y=True))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarE(x="hello", y=True)
         ]
 
-    def test_var_f_sub_var_a(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarA()))
-        result = types_sim.try_read_events("output", TestLoad.type)
+    def test_var_f_sub_var_a(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarA()))
+        result = payload_sim.try_read_events("output", TestLoad.type)
         assert len(result) == 1
         assert isinstance(result[0], TestLoad.VarF)
         assert isinstance(result[0]._0, TestSubLoad.VarA)
 
-    def test_var_f_sub_var_b(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarB()))
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+    def test_var_f_sub_var_b(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarB()))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarF(TestSubLoad.VarB())
         ]
 
-    def test_var_f_sub_var_c(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarC(7)))
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+    def test_var_f_sub_var_c(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarC(7)))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarF(TestSubLoad.VarC(7))
         ]
 
-    def test_var_f_sub_var_d(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarD("x", 1.0)))
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+    def test_var_f_sub_var_d(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarF(TestSubLoad.VarD("x", 1.0)))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarF(TestSubLoad.VarD("x", 1.0))
         ]
 
-    def test_var_f_sub_var_e(self, types_sim):
-        types_sim.process_event(
+    def test_var_f_sub_var_e(self, payload_sim):
+        payload_sim.process_event(
             "input", TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))
         )
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarF(TestSubLoad.VarE(x="a", y=False))
         ]
 
-    def test_var_g_sub_var_a(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarA()))
-        result = types_sim.try_read_events("output", TestLoad.type)
+    def test_var_g_sub_var_a(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarA()))
+        result = payload_sim.try_read_events("output", TestLoad.type)
         assert len(result) == 1
         assert isinstance(result[0], TestLoad.VarG)
         assert result[0].x == 1
         assert isinstance(result[0].y, TestSubLoad.VarA)
 
-    def test_var_g_sub_var_b(self, types_sim):
-        types_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarB()))
-        assert types_sim.try_read_events("output", TestLoad.type) == [
+    def test_var_g_sub_var_b(self, payload_sim):
+        payload_sim.process_event("input", TestLoad.VarG(x=1, y=TestSubLoad.VarB()))
+        assert payload_sim.try_read_events("output", TestLoad.type) == [
             TestLoad.VarG(x=1, y=TestSubLoad.VarB())
         ]
 
 
-def test_partials(types_sim):
-    types_sim.process_event("partial", Partial(unit=UnitEnum.VarA()))
-    partial = types_sim.try_read_events("partial_output", Partial)[0]
+def test_partials(payload_sim):
+    payload_sim.process_event("partial", Partial(unit=UnitEnum.VarA()))
+    partial = payload_sim.try_read_events("partial_output", Partial)[0]
 
     assert partial.load is None
     assert isinstance(partial.unit, UnitEnum.VarA)

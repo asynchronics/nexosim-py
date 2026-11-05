@@ -37,7 +37,7 @@ def coffee_server():
 def coffee(coffee_server):
     yield coffee_server
     with Simulation(coffee_server) as sim:
-        sim.terminate()
+        sim.tear_down()
 
 
 @pytest.fixture(scope="session")
@@ -64,7 +64,7 @@ def rt_coffee_server():
 def rt_coffee(rt_coffee_server):
     yield rt_coffee_server
     with Simulation(rt_coffee_server) as sim:
-        sim.terminate()
+        sim.tear_down()
 
 
 @pytest.fixture(scope="session")
@@ -91,19 +91,21 @@ def rt_coffee_ticker_server():
 def rt_coffee_ticker(rt_coffee_ticker_server):
     yield rt_coffee_ticker_server
     with Simulation(rt_coffee_ticker_server) as sim:
-        sim.terminate()
+        sim.tear_down()
 
 
 @pytest.fixture(scope="session")
-def types_bench_server():
-    """Spawn a simulation server set up with bench2."""
+def payload_bench_server():
+    """Spawn a simulation server set up with the payload bench."""
     # Port 41638 to avoid conflict with rt_coffee_ticker_server which uses 41637.
     address = "127.0.0.1:41638"
     subprocess.run(
         shlex.split("cargo build --manifest-path tests/bench/Cargo.toml"), check=True
     )
     with subprocess.Popen(
-        shlex.split(f"./tests/bench/target/debug/grpc-python types -a {address} --http")
+        shlex.split(
+            f"./tests/bench/target/debug/grpc-python payload -a {address} --http"
+        )
     ) as proc:
         # wait for startup
         time.sleep(1)
@@ -114,7 +116,7 @@ def types_bench_server():
 
 
 @pytest.fixture
-def types_bench(types_bench_server):
-    yield types_bench_server
-    with Simulation(types_bench_server) as sim:
-        sim.terminate()
+def payload_bench(payload_bench_server):
+    yield payload_bench_server
+    with Simulation(payload_bench_server) as sim:
+        sim.tear_down()

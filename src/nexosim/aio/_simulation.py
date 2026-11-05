@@ -10,7 +10,7 @@ from grpc import aio  # type: ignore
 from .. import exceptions
 from .._config import cbor2_converter
 from .._proto import simulation_pb2, simulation_pb2_grpc
-from .._simulation import EventKey, _to_error
+from .._simulation import _CHUNK_SIZE, EventKey, _to_error
 from ..time import Duration, MonotonicTime
 
 T = typing.TypeVar("T")
@@ -184,12 +184,12 @@ class Simulation:
 
         raise exceptions.UnexpectedError("unexpected response")
 
-    async def terminate(self) -> None:
+    async def tear_down(self) -> None:
         """
         Terminates a simulation.
         """
-        request = simulation_pb2.TerminateRequest()
-        reply = await self._stub.Terminate(request)  # type: ignore
+        request = simulation_pb2.TearDownRequest()
+        reply = await self._stub.TearDown(request)  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -228,7 +228,7 @@ class Simulation:
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def save(self) -> bytes:
+    async def save(self) -> bytearray:
         """
         Saves and returns the current simulation state in a serialized form.
 
@@ -247,14 +247,16 @@ class Simulation:
 
         """
         request = simulation_pb2.SaveRequest()
-        reply = await self._stub.Save(request)  # type: ignore
 
-        if reply.HasField("error"):
-            raise _to_error(reply.error)
+        chunks = bytearray()
+        async for reply in self._stub.Save(request):  # type: ignore
+            if reply.HasField("error"):
+                raise _to_error(reply.error)
+            chunks += reply.state
 
-        return reply.state
+        return chunks
 
-    async def restore(self, state: bytes) -> None:
+    async def restore(self, state: bytes | bytearray) -> None:
         """
         Restores the simulation from a serialized state.
 
@@ -279,13 +281,17 @@ class Simulation:
                 - [`RestoreError`][nexosim.exceptions.RestoreError]
 
         """
-        request = simulation_pb2.RestoreRequest(state=state)
-        reply = await self._stub.Restore(request)  # type: ignore
+        reply = await self._stub.Restore(
+            (
+                simulation_pb2.RestoreRequest(state=bytes(state[i : i + _CHUNK_SIZE]))
+                for i in range(0, len(state), _CHUNK_SIZE)
+            )
+        )  # type: ignore
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
-    async def restore_and_run(self, state: bytes) -> MonotonicTime:
+    async def restore_and_run(self, state: bytes | bytearray) -> MonotonicTime:
         """
         Restores the simulation from a serialized state and runs the simulation.
 
@@ -325,8 +331,14 @@ class Simulation:
                 - [`SimulationTimeoutError`][nexosim.exceptions.SimulationTimeoutError]
         """
 
-        request = simulation_pb2.RestoreAndRunRequest(state=state)
-        reply = await self._stub.RestoreAndRun(request)  # type: ignore
+        reply = await self._stub.RestoreAndRun(
+            (
+                simulation_pb2.RestoreAndRunRequest(
+                    state=bytes(state[i : i + _CHUNK_SIZE])
+                )
+                for i in range(0, len(state), _CHUNK_SIZE)
+            )
+        )  # type: ignore
 
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)

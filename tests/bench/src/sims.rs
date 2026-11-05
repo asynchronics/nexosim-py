@@ -7,7 +7,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use crate::coffee;
-use crate::complex_types;
+use crate::payload;
 
 /// Create the bench assembly.
 pub fn coffee_bench(init_tank_volume: Option<f64>) -> Result<SimInit, Box<dyn Error>> {
@@ -84,12 +84,13 @@ pub fn rt_coffee_bench_ticker(init_tank_volume: Option<f64>) -> Result<SimInit, 
     ))
 }
 
-pub fn types_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
-    let mut model = complex_types::MyModel::default();
+pub fn payload_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
+    let mut model = payload::MyModel::default();
+    let memory = payload::Memory::default();
 
     // Mailboxes.
     let model_mbox = Mailbox::new();
-    let model_addr = model_mbox.address();
+    let memory_mbox = Mailbox::new();
 
     let mut bench = SimInit::new();
 
@@ -99,7 +100,7 @@ pub fn types_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
     model.output.connect_sink(output);
 
     EventSource::new()
-        .connect(complex_types::MyModel::my_input, &model_addr)
+        .connect(payload::MyModel::my_input, &model_mbox)
         .bind_endpoint(&mut bench, "input")
         .unwrap();
 
@@ -107,10 +108,22 @@ pub fn types_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
     model.partial_output.connect_sink(output);
 
     EventSource::new()
-        .connect(complex_types::MyModel::partial_input, &model_addr)
+        .connect(payload::MyModel::partial_input, &model_mbox)
         .bind_endpoint(&mut bench, "partial")
         .unwrap();
 
+    EventSource::new()
+        .connect(payload::Memory::resize, &memory_mbox)
+        .bind_endpoint(&mut bench, "mem_resize")
+        .unwrap();
+
+    QuerySource::new()
+        .connect(payload::Memory::size, &memory_mbox)
+        .bind_endpoint(&mut bench, "mem_size")
+        .unwrap();
+
     // Assembly and initialization.
-    Ok(bench.add_model(model, model_mbox, "model"))
+    Ok(bench
+        .add_model(model, model_mbox, "model")
+        .add_model(memory, memory_mbox, "memory"))
 }

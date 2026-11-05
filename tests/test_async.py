@@ -79,10 +79,18 @@ async def rt_sim(rt_coffee):
         yield sim
 
 
+@pytest_asyncio.fixture
+async def payload_sim(payload_bench):
+    async with Simulation(payload_bench) as sim:
+        await sim.build()
+        await sim.init()
+        yield sim
+
+
 @pytest.mark.asyncio
 async def test_reinitialize_sim_losses_state(sim):
     await sim.step_until(Duration(1))
-    await sim.terminate()
+    await sim.tear_down()
     await sim.build()
     await sim.init()
 
@@ -90,10 +98,10 @@ async def test_reinitialize_sim_losses_state(sim):
 
 
 @pytest.mark.asyncio
-async def test_terminate_start(sim):
+async def test_tear_down_start(sim):
     await sim.step_until(Duration(1))
     assert await sim.time() == MonotonicTime(1, 0)
-    await sim.terminate()
+    await sim.tear_down()
     with pytest.raises(SimulationNotStartedError):
         await sim.time()
     await sim.build()
@@ -298,7 +306,7 @@ async def test_save_and_restore(sim):
     assert await sim.time() == MonotonicTime(25, 0)
 
     # Restore the simulation state to before the step
-    await sim.terminate()
+    await sim.tear_down()
     await sim.build()
     await sim.restore(state)
     assert await sim.time() == MonotonicTime(0, 0)
@@ -318,12 +326,32 @@ async def test_save_restore_and_run(sim):
     assert await sim.time() == MonotonicTime(25, 0)
 
     # Restore the simulation state
-    await sim.terminate()
+    await sim.tear_down()
     await sim.build()
     await sim.restore_and_run(state)
 
     assert await sim.time() == MonotonicTime(25, 0)
     assert await sim.try_read_events("flow_rate") == [0.0]
+
+
+@pytest.mark.parametrize("restore_method", ["restore", "restore_and_run"])
+@pytest.mark.asyncio
+async def test_save_and_restore_large_state(payload_sim, restore_method):
+    mem_size = 5 * 1024 * 1024  # 5 MB
+    await payload_sim.process_event("mem_resize", mem_size)
+    assert (await payload_sim.process_query("mem_size"))[0] == mem_size
+    state = await payload_sim.save()
+
+    # Continue with the simulation
+    await payload_sim.process_event("mem_resize", 10)
+    assert (await payload_sim.process_query("mem_size"))[0] == 10
+
+    # Restore the saved simulation state.
+    await payload_sim.tear_down()
+    await payload_sim.build()
+    await getattr(payload_sim, restore_method)(state)
+
+    assert (await payload_sim.process_query("mem_size"))[0] == mem_size
 
 
 @pytest.mark.asyncio
@@ -338,7 +366,7 @@ async def test_save_restore_and_run_concurrent(rt_coffee_ticker):
         await rt_sim.step_until(MonotonicTime(1))
         assert await rt_sim.try_read_events("flow_rate") == [4.5e-6]
 
-        await rt_sim.terminate()
+        await rt_sim.tear_down()
 
         # Restore the simulation state
         async def restore_and_run():
