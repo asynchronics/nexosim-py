@@ -235,6 +235,11 @@ _Arg13 = typing.TypeVar("_Arg13")
 _Arg14 = typing.TypeVar("_Arg14")
 _Arg15 = typing.TypeVar("_Arg15")
 
+if typing.TYPE_CHECKING:
+    from typing_extensions import TypeForm
+else:
+    from typing import Type as TypeForm
+
 
 def enumclass(cls: type[_T]) -> type[_T]:
     """Class decorator that marks a class as the definition of a Rust-like
@@ -764,274 +769,303 @@ def tuple_type() -> type[TupleType0Arg]: ...
 
 
 @typing.overload
-def tuple_type(_0: type[_Arg0]) -> type[TupleType1Arg[_Arg0]]: ...
+def tuple_type(_0: TypeForm[_Arg0]) -> type[TupleType1Arg[_Arg0]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1]
+    _0: TypeForm[_Arg0], _1: TypeForm[_Arg1]
 ) -> type[TupleType2Arg[_Arg0, _Arg1]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2]
-) -> TupleType3Arg[_Arg0, _Arg1, _Arg2]: ...
+    _0: TypeForm[_Arg0], _1: TypeForm[_Arg1], _2: TypeForm[_Arg2]
+) -> type[TupleType3Arg[_Arg0, _Arg1, _Arg2]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3]
-) -> TupleType4Arg[_Arg0, _Arg1, _Arg2, _Arg3]: ...
+    _0: TypeForm[_Arg0], _1: TypeForm[_Arg1], _2: TypeForm[_Arg2], _3: TypeForm[_Arg3]
+) -> type[TupleType4Arg[_Arg0, _Arg1, _Arg2, _Arg3]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0], _1: type[_Arg1], _2: type[_Arg2], _3: type[_Arg3], _4: type[_Arg4]
-) -> TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]: ...
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+) -> type[TupleType5Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-) -> TupleType6Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]: ...
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+) -> type[TupleType6Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-) -> TupleType7Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]: ...
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+) -> type[TupleType7Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-) -> TupleType8Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]: ...
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+) -> type[TupleType8Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7]]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-) -> TupleType9Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]: ...
-
-
-@typing.overload
-def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-) -> TupleType10Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+) -> type[
+    TupleType9Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8]
 ]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-) -> TupleType11Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+) -> type[
+    TupleType10Arg[_Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9]
 ]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-) -> TupleType12Arg[
-    _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10, _Arg11
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+    _10: TypeForm[_Arg10],
+) -> type[
+    TupleType11Arg[
+        _Arg0, _Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9, _Arg10
+    ]
 ]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-) -> TupleType13Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+    _10: TypeForm[_Arg10],
+    _11: TypeForm[_Arg11],
+) -> type[
+    TupleType12Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+    ]
 ]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-    _13: type[_Arg13],
-) -> TupleType14Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+    _10: TypeForm[_Arg10],
+    _11: TypeForm[_Arg11],
+    _12: TypeForm[_Arg12],
+) -> type[
+    TupleType13Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+    ]
 ]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-    _13: type[_Arg13],
-    _14: type[_Arg14],
-) -> TupleType15Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-    _Arg14,
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+    _10: TypeForm[_Arg10],
+    _11: TypeForm[_Arg11],
+    _12: TypeForm[_Arg12],
+    _13: TypeForm[_Arg13],
+) -> type[
+    TupleType14Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+        _Arg13,
+    ]
 ]: ...
 
 
 @typing.overload
 def tuple_type(
-    _0: type[_Arg0],
-    _1: type[_Arg1],
-    _2: type[_Arg2],
-    _3: type[_Arg3],
-    _4: type[_Arg4],
-    _5: type[_Arg5],
-    _6: type[_Arg6],
-    _7: type[_Arg7],
-    _8: type[_Arg8],
-    _9: type[_Arg9],
-    _10: type[_Arg10],
-    _11: type[_Arg11],
-    _12: type[_Arg12],
-    _13: type[_Arg13],
-    _14: type[_Arg14],
-    _15: type[_Arg15],
-) -> TupleType16Arg[
-    _Arg0,
-    _Arg1,
-    _Arg2,
-    _Arg3,
-    _Arg4,
-    _Arg5,
-    _Arg6,
-    _Arg7,
-    _Arg8,
-    _Arg9,
-    _Arg10,
-    _Arg11,
-    _Arg12,
-    _Arg13,
-    _Arg14,
-    _Arg15,
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+    _10: TypeForm[_Arg10],
+    _11: TypeForm[_Arg11],
+    _12: TypeForm[_Arg12],
+    _13: TypeForm[_Arg13],
+    _14: TypeForm[_Arg14],
+) -> type[
+    TupleType15Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+        _Arg13,
+        _Arg14,
+    ]
+]: ...
+
+
+@typing.overload
+def tuple_type(
+    _0: TypeForm[_Arg0],
+    _1: TypeForm[_Arg1],
+    _2: TypeForm[_Arg2],
+    _3: TypeForm[_Arg3],
+    _4: TypeForm[_Arg4],
+    _5: TypeForm[_Arg5],
+    _6: TypeForm[_Arg6],
+    _7: TypeForm[_Arg7],
+    _8: TypeForm[_Arg8],
+    _9: TypeForm[_Arg9],
+    _10: TypeForm[_Arg10],
+    _11: TypeForm[_Arg11],
+    _12: TypeForm[_Arg12],
+    _13: TypeForm[_Arg13],
+    _14: TypeForm[_Arg14],
+    _15: TypeForm[_Arg15],
+) -> type[
+    TupleType16Arg[
+        _Arg0,
+        _Arg1,
+        _Arg2,
+        _Arg3,
+        _Arg4,
+        _Arg5,
+        _Arg6,
+        _Arg7,
+        _Arg8,
+        _Arg9,
+        _Arg10,
+        _Arg11,
+        _Arg12,
+        _Arg13,
+        _Arg14,
+        _Arg15,
+    ]
 ]: ...
 
 
