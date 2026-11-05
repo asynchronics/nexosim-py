@@ -420,6 +420,15 @@ class UnitType:
     def __repr__(self):
         return self.__class__.__qualname__
 
+    def __eq__(self, other: object) -> bool:
+        if self.__class__ == other.__class__:
+            return True
+        return NotImplemented
+
+    # __hash__ is set to None when __eq__ is implemented.
+    def __hash__(self) -> int:
+        return hash(self.__class__)
+
 
 _cbor2_converter.register_structure_hook(UnitType, lambda d, t: t())
 _cbor2_converter.register_unstructure_hook(UnitType, _unit_unstructure_hook)
