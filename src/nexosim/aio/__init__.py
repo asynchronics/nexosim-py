@@ -12,7 +12,7 @@ This module defines an asynchronous version of the
         from nexosim.exceptions import SimulationNotStartedError
 
         async def run():
-            async with Simulation("0.0.0.0:41633") as sim:
+            async with Simulation("0.0.0.0:41634") as sim:
                 await sim.build()
                 await sim.init()
 
@@ -26,7 +26,7 @@ This module defines an asynchronous version of the
                     print(await sim.try_read_events("output"))
 
         async def halt():
-            async with Simulation("0.0.0.0:41633") as sim:
+            async with Simulation("0.0.0.0:41634") as sim:
                 await asyncio.sleep(2)
                 await sim.halt()
 
@@ -91,7 +91,7 @@ This module defines an asynchronous version of the
         }
 
         fn main() {
-            server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();
+            server::run(bench, "0.0.0.0:41634".parse().unwrap()).unwrap();
         }
         ```
 """

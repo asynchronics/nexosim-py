@@ -33,6 +33,8 @@ enum Bench {
     CoffeeRt,
     CoffeeRtTicker,
     Payload,
+    Docs,
+    DocsRt,
 }
 
 impl std::str::FromStr for Bench {
@@ -44,6 +46,8 @@ impl std::str::FromStr for Bench {
             "coffeert" => Ok(Self::CoffeeRt),
             "coffeertticker" => Ok(Self::CoffeeRtTicker),
             "payload" => Ok(Self::Payload),
+            "docs" => Ok(Self::Docs),
+            "docsrt" => Ok(Self::DocsRt),
             _ => Err(format!("{s} bench not recognized.")),
         }
     }
@@ -91,6 +95,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("HTTP Payload server listening at {}", addr);
                 server::run_with_shutdown(sims::payload_bench, addr.parse()?, signal)
             }
+            Bench::Docs => {
+                println!("HTTP Docs server listening at {}", addr);
+                server::run_with_shutdown(sims::docs_bench, addr.parse()?, signal)
+            }
+            Bench::DocsRt => {
+                println!("HTTP DocsRT server listening at {}", addr);
+                server::run_with_shutdown(sims::docs_rt_bench, addr.parse()?, signal)
+            }
         }?;
     } else {
         #[cfg(unix)]
@@ -110,6 +122,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Bench::Payload => {
                 println!("Local Payload server listening at {}", addr);
                 server::run_local_with_shutdown(sims::payload_bench, addr, signal)
+            }
+            Bench::Docs => {
+                println!("Local Docs server listening at {}", addr);
+                server::run_local_with_shutdown(sims::docs_bench, addr, signal)
+            }
+            Bench::DocsRt => {
+                println!("Local DocsRT server listening at {}", addr);
+                server::run_local_with_shutdown(sims::docs_rt_bench, addr, signal)
             }
         }?;
 

@@ -31,11 +31,12 @@ prefixed with the `unix:` scheme. The server should be started with the
 `run_local` function.
 
 === "Client"
+    <!-- skip:next -->
     ```python
     from nexosim import Simulation
 
     with Simulation("unix:/tmp/nexo") as sim:
-        # ...
+        ...
     ```
 === "Server"
     ```rust
@@ -50,7 +51,7 @@ the server should be started using the `run` function.
     from nexosim import Simulation
 
     with Simulation("0.0.0.0:41633") as sim:
-        # ...
+        ...
     ```
 === "Server"
     ```rust
@@ -71,68 +72,7 @@ After the bench is built, the simulation can be initialized with the
 is set, defaulting to 1970-01-01 00:00:00 TAI.
 
 The [`build()`][nexosim.Simulation.build] method accepts a configuration object
-as an argument that can be used in the bench builder function.
-
-=== "Client"
-    ```python
-    from nexosim import Simulation
-
-    with Simulation("0.0.0.0:41633") as sim:
-        sim.build(123)
-        sim.init()
-        print(sim.process_query("replier"))
-
-    # Prints:
-    # [123]
-    ```
-=== "Server"
-    ```rust
-    use std::error::Error;
-
-    use nexosim::model::Model;
-    use nexosim::ports::QuerySource;
-    use nexosim::server;
-    use nexosim::simulation::{Mailbox, SimInit};
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Serialize, Deserialize, Default)]
-    pub(crate) struct MyModel {
-        value: u16,
-    }
-
-    #[Model]
-    impl MyModel {
-        pub async fn my_replier(&mut self) -> u16 {
-            self.value
-        }
-
-        pub(crate) fn new(value: u16) -> Self {
-            Self { value }
-        }
-    }
-
-    fn bench(cfg: u16) -> Result<SimInit, Box<dyn Error>> {
-        // Pass the configuration object to the model constructor.
-        let model = MyModel::new(cfg);
-
-        // Create a mailbox for the model.
-        let model_mbox = Mailbox::new();
-
-        let mut bench = SimInit::new();
-
-        QuerySource::new()
-            .connect(MyModel::my_replier, &model_mbox)
-            .bind_endpoint(&mut bench, "replier")?;
-
-        Ok(bench.add_model(model, model_mbox, "model"))
-    }
-
-    fn main() {
-        server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();
-    }
-    ```
-
-The configuration object can be any serializable type:
+as an argument that can be used in the bench builder function:
 
 === "Client"
     ```python
@@ -149,11 +89,15 @@ The configuration object can be any serializable type:
     with Simulation("0.0.0.0:41633") as sim:
         sim.build(ModelConfig(123, "string"))
         sim.init()
-        print(sim.process_query("replier"))
+        reply = sim.process_query("replier")
+        print(reply)
 
     # Prints:
     # ['string']
     ```
+    <!-- invisible-code-block: python
+    assert reply == ["string"]
+    -->
 === "Server"
     ```rust
     use std::error::Error;
@@ -227,7 +171,7 @@ control the state of individual sinks.
 with Simulation("0.0.0.0:41633") as sim:
     sim.build()
     sim.init()
-    sim.enable_sink("my_sink")
+    sim.enable_sink("output")
 ```
 
 ## Interacting with the simulation
@@ -249,7 +193,7 @@ Events can be broadcast to an `EventSource` using the
 with Simulation("0.0.0.0:41633") as sim:
     sim.build()
     sim.init()
-    output = sim.process_event("my_input", 5)
+    sim.process_event("input", 5)
 ```
 
 To broadcast a query to a QuerySource use the
@@ -266,6 +210,10 @@ with Simulation("0.0.0.0:41633") as sim:
 # Prints out:
 # ['5']
 ```
+
+<!-- invisible-code-block: python
+assert output == ["5"]
+-->
 
 !!! note
     Both the [`process_event()`][nexosim.Simulation.process_event] and
@@ -285,10 +233,13 @@ with `with_key = True`. The event can be then cancelled using the
 event key.
 
 ```python
+from nexosim import Simulation
+from nexosim.time import Duration
+
 with Simulation("0.0.0.0:41633") as sim:
     sim.build()
     sim.init()
-    event_key = sim.schedule_event(Duration(10), "my_event", with_key=True)
+    event_key = sim.schedule_event(Duration(10), "input", 1, with_key=True)
     sim.cancel_event(event_key)
 ```
 
@@ -308,7 +259,7 @@ Events are injected using the [`inject_event()`][nexosim.Simulation.inject_event
 with Simulation("0.0.0.0:41633") as sim:
     sim.build()
     sim.init()
-    sim.inject_event("my_input", 5)
+    sim.inject_event("input", 5)
 ```
 
 ### Advancing the simulation
@@ -330,8 +281,13 @@ with Simulation("0.0.0.0:41633") as sim:
     sim.init()
     sim.schedule_event(MonotonicTime(1), "input", 1)
     sim.step()
-    print(sim.time())  # 1970-01-01 00:00:01
+    t = sim.time()
+    print(t)  # 1970-01-01 00:00:01
 ```
+
+<!-- invisible-code-block: python
+assert t == MonotonicTime(1)
+-->
 
 To advance the simulation to the specified time, processing all events scheduled
 up to that time, use the [`step_until()`] [nexosim.Simulation.step_until]
@@ -393,7 +349,7 @@ synchronized with the system clock:
 
 
     async def run():
-        async with Simulation("0.0.0.0:41633") as sim:
+        async with Simulation("0.0.0.0:41634") as sim:
             await sim.build()
             await sim.init()
 
@@ -404,25 +360,33 @@ synchronized with the system clock:
             except SimulationNotStartedError:
                 time = await sim.time()
                 print(f"Simulation halted at {time}")
-                print(await sim.try_read_events("output"))
+                events = await sim.try_read_events("output")
+                print(events)
+                return time, events
 
 
     async def halt():
-        async with Simulation("0.0.0.0:41633") as sim:
+        async with Simulation("0.0.0.0:41634") as sim:
             await asyncio.sleep(2)
             await sim.halt()
 
 
     async def main():
-        await asyncio.gather(run(), halt())
+        return await asyncio.gather(run(), halt())
 
 
-    asyncio.run(main())
+    result = asyncio.run(main())
 
     # Prints out:
-    # Simulation halted at 1970-01-01 00:00:03
-    # [1]
+    # Simulation halted at 1970-01-01 00:00:02
+    # [{"foo": 1, "bar": "string"}]
     ```
+
+    <!-- invisible-code-block: python
+    (halted_at, events), _ = result
+    assert MonotonicTime(2) <= halted_at < MonotonicTime(3)
+    assert events == [{"foo": 1, "bar": "string"}]
+    -->
 === "Server"
     ```rust
     use std::error::Error;
@@ -467,7 +431,7 @@ synchronized with the system clock:
     }
 
     fn main() {
-        server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();
+        server::run(bench, "0.0.0.0:41634".parse().unwrap()).unwrap();
     }
     ```
 
@@ -520,6 +484,10 @@ parameter controls the type the read event will be mapped to.
     # Events mapped to the OutputEvent class: [OutputEvent(foo=1, bar='string')]
     # Events without specifying the reply type: [{'foo': 1, 'bar': 'string'}]
     ```
+
+    <!-- invisible-code-block: python
+    assert outputs == [{'foo': 1, 'bar': 'string'}]
+    -->
 === "Server"
     ```rust
     use std::error::Error;
@@ -600,6 +568,10 @@ with Simulation(address="localhost:41633") as sim:
 # OutputEvent(foo=1, bar='string')
 ```
 
+<!-- invisible-code-block: python
+assert output == OutputEvent(foo=1, bar='string')
+-->
+
 The `EventSink` must be [enabled](#enabling-and-disabling-sinks) to receive events
 from the simulation.
 
@@ -622,46 +594,52 @@ Before the state can be restored the simulation must be rebuilt.
         sim.build()
         sim.init()
 
-        sim.process_event("input")
+        sim.process_event("input", 1)
 
         state = sim.save()
-        sim.terminate()
+        sim.tear_down()
         sim.build()
         sim.restore(state)
 
-        sim.process_event("input")
-        outputs = sim.try_read_events("output")
-        print(outputs)
+        sim.process_event("input", 1)
+        count = sim.process_query("count")
+        print(count)
 
     # Prints:
     # [2]
     ```
+
+    <!-- invisible-code-block: python
+    assert count == [2]
+    -->
 === "Server"
     ```rust
     use std::error::Error;
 
     use nexosim::model::Model;
-    use nexosim::ports::{EventSource, Output, SinkState, event_queue_endpoint};
+    use nexosim::ports::{EventSource, QuerySource};
     use nexosim::server;
     use nexosim::simulation::{Mailbox, SimInit};
     use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, Default)]
     struct MyModel {
-        output: Output<u16>,
         count: u16,
     }
 
     #[Model]
     impl MyModel {
-        pub async fn my_input(&mut self) {
-            self.count += 1;
-            self.output.send(self.count).await;
+        pub async fn my_input(&mut self, amount: u16) {
+            self.count += amount;
+        }
+
+        pub async fn count(&mut self) -> u16 {
+            self.count
         }
     }
 
     fn bench(_: ()) -> Result<SimInit, Box<dyn Error>> {
-        let mut model = MyModel::default();
+        let model = MyModel::default();
         let model_mbox = Mailbox::new();
 
         let mut bench = SimInit::new();
@@ -670,8 +648,9 @@ Before the state can be restored the simulation must be rebuilt.
             .connect(MyModel::my_input, &model_mbox)
             .bind_endpoint(&mut bench, "input")?;
 
-        let sink = event_queue_endpoint(&mut bench, SinkState::Enabled, "output")?;
-        model.output.connect_sink(sink);
+        QuerySource::new()
+            .connect(MyModel::count, &model_mbox)
+            .bind_endpoint(&mut bench, "count")?;
 
         Ok(bench.add_model(model, model_mbox, "model"))
     }
@@ -713,7 +692,7 @@ synchronized with the system clock:
 
 
     async def run():
-        async with Simulation("0.0.0.0:41633") as sim:
+        async with Simulation("0.0.0.0:41634") as sim:
             await sim.build()
             await sim.init()
 
@@ -726,25 +705,36 @@ synchronized with the system clock:
 
 
     async def read():
-        async with Simulation("0.0.0.0:41633") as sim:
+        async with Simulation("0.0.0.0:41634") as sim:
             await asyncio.sleep(2)
-            print(await sim.try_read_events("output"))
+            first = await sim.try_read_events("output")
+            print(first)
             await asyncio.sleep(3)
-            print(await sim.try_read_events("output"))
+            second = await sim.try_read_events("output")
+            print(second)
+
+        return first, second
 
 
     async def main():
-        await asyncio.gather(run(), read())
+        return await asyncio.gather(run(), read())
 
 
-    asyncio.run(main())
+    result = asyncio.run(main())
 
     # Prints out
     # step_until started
-    # [1]
+    # [{'foo': 1, 'bar': 'string'}]
     # step_until finished
-    # [2]
+    # [{'foo': 2, 'bar': 'string'}]
     ```
+
+    <!-- invisible-code-block: python
+    _, (first, second) = result
+    assert first == [{"foo": 1, "bar": "string"}]
+    assert second == [{"foo": 2, "bar": "string"}]
+    -->
+
 === "Server"
     ```rust
     use std::error::Error;
@@ -789,7 +779,7 @@ synchronized with the system clock:
     }
 
     fn main() {
-        server::run(bench, "0.0.0.0:41633".parse().unwrap()).unwrap();
+        server::run(bench, "0.0.0.0:41634".parse().unwrap()).unwrap();
     }
     ```
 
