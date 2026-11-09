@@ -66,12 +66,17 @@ manually with the [`tupleclass`][nexosim.types.tupleclass] decorator. This is
 for instance how [`TupleType2Arg`][nexosim.types.TupleType2Arg] is defined:
 
 ```py
-from nexosim.types import variantclass
+import typing
+
+from nexosim.types import tupleclass
+
+_Arg0 = typing.TypeVar("_Arg0")
+_Arg1 = typing.TypeVar("_Arg1")
 
 @tupleclass
-class TupleType2Arg[Arg0, Arg1]:
-    _0: Arg0
-    _1: Arg1
+class TupleType2Arg(typing.Generic[_Arg0, _Arg1]):
+    _0: _Arg0
+    _1: _Arg1
 ```
 
 ## Enum-like classes
@@ -1085,5 +1090,5 @@ def tuple_type(*args):  # type: ignore
             return TupleType16Arg[*args]  # type: ignore
         case _:
             raise NotImplementedError(
-                "only variant arity up to 16 is implemented; use the 'variantclass' decorator instead"
+                "only tuple arity up to 16 is implemented; use the 'tupleclass' decorator instead"
             )

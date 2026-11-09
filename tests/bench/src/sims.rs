@@ -7,6 +7,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use crate::coffee;
+use crate::docs;
 use crate::payload;
 
 /// Create the bench assembly.
@@ -126,4 +127,48 @@ pub fn payload_bench(_cfg: ()) -> Result<SimInit, Box<dyn Error>> {
     Ok(bench
         .add_model(model, model_mbox, "model")
         .add_model(memory, memory_mbox, "memory"))
+}
+
+pub fn docs_bench(cfg: Option<docs::ModelConfig>) -> Result<SimInit, Box<dyn Error>> {
+    let mut model = docs::MyModel::new(cfg);
+    let mbox = Mailbox::new();
+
+    let mut add_model = docs::AddOne::default();
+    let add_mbox = Mailbox::new();
+
+    let mut bench = SimInit::new();
+
+    EventSource::new()
+        .connect(docs::MyModel::my_input, &mbox)
+        .bind_endpoint(&mut bench, "input")?;
+    QuerySource::new()
+        .connect(docs::MyModel::my_replier, &mbox)
+        .bind_endpoint(&mut bench, "replier")?;
+    QuerySource::new()
+        .connect(docs::MyModel::to_string, &mbox)
+        .bind_endpoint(&mut bench, "my_replier")?;
+    QuerySource::new()
+        .connect(docs::MyModel::count, &mbox)
+        .bind_endpoint(&mut bench, "count")?;
+
+    let output = event_queue_endpoint(&mut bench, SinkState::Enabled, "output")?;
+    model.output.connect_sink(output);
+
+    EventSource::new()
+        .connect(docs::AddOne::input, &add_mbox)
+        .bind_endpoint(&mut bench, "add_1_input")?;
+
+    let output = event_queue_endpoint(&mut bench, SinkState::Enabled, "add_1_output")?;
+    add_model.output.connect_sink(output);
+
+    Ok(bench
+        .add_model(model, mbox, "model")
+        .add_model(add_model, add_mbox, "AddOne"))
+}
+
+pub fn docs_rt_bench(cfg: Option<docs::ModelConfig>) -> Result<SimInit, Box<dyn Error>> {
+    Ok(docs_bench(cfg)?.with_clock(
+        AutoSystemClock::new(),
+        PeriodicTicker::new(Duration::from_millis(10)),
+    ))
 }

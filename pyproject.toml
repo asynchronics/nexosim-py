@@ -47,25 +47,31 @@ dependencies = [
 ]
 
 [tool.hatch.envs.test]
-dependencies = ["pytest>=8.2.0", "pytest-asyncio>=0.25.3"]
+dependencies = ["pytest>=8.2.0", "pytest-asyncio>=0.25.3", "sybil[pytest]>=10.1.0"]
 
 [tool.hatch.envs.test.scripts]
 run = "pytest -m \"not slow\""
 run-all = "pytest"
+run-doctests = "pytest src docs README.md"
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.11", "3.12", "3.13" , "3.14"]
 
 
 [tool.hatch.envs.typecheck]
-dependencies = ["pyright>=1.1.397"]
+dependencies = [
+  "pyright>=1.1.397",
+  "pytest>=8.2.0",
+  "pytest-asyncio>=0.25.3",
+  "sybil[pytest]>=10.1.0",
+]
 
 [tool.hatch.envs.typecheck.scripts]
 run = "pyright"
 [tool.hatch.envs.make]
 dependencies = ["grpcio-tools>=1.70.0"]
 [tool.pyright]
-include = ["src"]
+include = ["src", "tests", "conftest.py"]
 ignore = ["src/nexosim/_proto"]
 enableExperimentalFeatures = true
 

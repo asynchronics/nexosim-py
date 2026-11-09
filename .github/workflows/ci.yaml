@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "main" ]
   pull_request:
 
 jobs:
@@ -27,6 +27,9 @@ jobs:
         run: pipx install hatch
       - name: Run tests
         run: hatch run +py=${{ matrix.python-version }} test:run-all
+      - name: Run doctests
+        run: hatch run +py=${{ matrix.python-version }} test:run-doctests
+
 
   lint:
     runs-on: ubuntu-latest
