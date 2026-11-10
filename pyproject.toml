@@ -63,7 +63,7 @@ dependencies = ["pyright>=1.1.397"]
 [tool.hatch.envs.typecheck.scripts]
 run = "pyright"
 [tool.hatch.envs.make]
-dependencies = ["grpcio-tools>=1.70.0"]
+dependencies = ["grpcio-tools>=1.70.0", "mypy-protobuf>=3.7.0,<4"]
 [tool.pyright]
 include = ["src"]
 ignore = ["src/nexosim/_proto"]

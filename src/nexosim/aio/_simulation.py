@@ -5,7 +5,7 @@ import typing
 import cbor2
 from google.protobuf.duration_pb2 import Duration as PbDuration
 from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
-from grpc import aio  # type: ignore
+from grpc import aio
 
 from .. import exceptions
 from .._config import cbor2_converter
@@ -96,7 +96,7 @@ class Simulation:
                     - [`InvalidBenchConfigError`][nexosim.exceptions.InvalidBenchConfigError]
         """
         request = simulation_pb2.BuildRequest(cfg=cbor2_converter.dumps(cfg))
-        reply = await self._stub.Build(request)  # type: ignore
+        reply = await self._stub.Build(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -127,7 +127,7 @@ class Simulation:
         request = simulation_pb2.InitRequest(
             time=PbTimestamp(seconds=time.secs, nanos=time.nanos),
         )
-        reply = await self._stub.Init(request)  # type: ignore
+        reply = await self._stub.Init(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -174,7 +174,7 @@ class Simulation:
         request = simulation_pb2.InitAndRunRequest(
             time=PbTimestamp(seconds=time.secs, nanos=time.nanos),
         )
-        reply = await self._stub.InitAndRun(request)  # type: ignore
+        reply = await self._stub.InitAndRun(request)
 
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
@@ -223,7 +223,7 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
         request = simulation_pb2.HaltRequest()
-        reply = await self._stub.Halt(request)  # type: ignore
+        reply = await self._stub.Halt(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -363,7 +363,7 @@ class Simulation:
         """
 
         request = simulation_pb2.TimeRequest()
-        reply = await self._stub.Time(request)  # type: ignore
+        reply = await self._stub.Time(request)
 
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
@@ -400,7 +400,7 @@ class Simulation:
         """
 
         request = simulation_pb2.StepRequest()
-        reply = await self._stub.Step(request)  # type: ignore
+        reply = await self._stub.Step(request)
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -439,7 +439,7 @@ class Simulation:
         """
 
         request = simulation_pb2.RunRequest()
-        reply = await self._stub.Run(request)  # type: ignore
+        reply = await self._stub.Run(request)
 
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
@@ -491,9 +491,9 @@ class Simulation:
         else:
             kwargs["duration"] = PbDuration(seconds=deadline.secs, nanos=deadline.nanos)
 
-        request = simulation_pb2.StepUntilRequest(**kwargs)  # type: ignore
+        request = simulation_pb2.StepUntilRequest(**kwargs)
 
-        reply = await self._stub.StepUntil(request)  # type: ignore
+        reply = await self._stub.StepUntil(request)
         if reply.HasField("time"):
             return MonotonicTime(reply.time.seconds, reply.time.nanos)
 
@@ -520,7 +520,7 @@ class Simulation:
                 - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
         """
         request = simulation_pb2.ListEventSourcesRequest()
-        reply = await self._stub.ListEventSources(request)  # type: ignore
+        reply = await self._stub.ListEventSources(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -529,7 +529,7 @@ class Simulation:
 
     async def get_event_source_schemas(
         self, sources: typing.Iterable[str | typing.Iterable[str]]
-    ) -> dict[tuple[str], dict]:
+    ) -> dict[tuple[str, ...], dict]:
         """Retrieves the schema of the event sources specified in `sources`.
 
         This method requires the simulation bench to be built with the
@@ -557,7 +557,7 @@ class Simulation:
                 for path in sources
             ]
         )
-        reply = await self._stub.GetEventSourceSchemas(request)  # type: ignore
+        reply = await self._stub.GetEventSourceSchemas(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -566,7 +566,7 @@ class Simulation:
             tuple(schema.source.segments): json.loads(schema.event)
             for schema in reply.schemas
             if schema.event
-        }  # type: ignore
+        }
 
     async def list_query_sources(self) -> list[list[str]]:
         """Lists available query sources.
@@ -586,7 +586,7 @@ class Simulation:
                 - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
         """
         request = simulation_pb2.ListQuerySourcesRequest()
-        reply = await self._stub.ListQuerySources(request)  # type: ignore
+        reply = await self._stub.ListQuerySources(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -595,7 +595,7 @@ class Simulation:
 
     async def get_query_source_schemas(
         self, sources: typing.Iterable[str | typing.Iterable[str]]
-    ) -> dict[str, dict]:
+    ) -> dict[tuple[str, ...], dict]:
         """Retrieves the schema of the query sources specified in `sources`.
 
         This method requires the simulation bench to be built with the
@@ -623,7 +623,7 @@ class Simulation:
                 for path in sources
             ]
         )
-        reply = await self._stub.GetQuerySourceSchemas(request)  # type: ignore
+        reply = await self._stub.GetQuerySourceSchemas(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -634,7 +634,7 @@ class Simulation:
                 "reply": json.loads(schema.reply),
             }
             for schema in reply.schemas
-        }  # type: ignore
+        }
 
     async def list_event_sinks(self) -> list[list[str]]:
         """Lists available event sinks.
@@ -654,7 +654,7 @@ class Simulation:
                 - [`BenchNotBuiltError`][nexosim.exceptions.BenchNotBuiltError]
         """
         request = simulation_pb2.ListEventSinksRequest()
-        reply = await self._stub.ListEventSinks(request)  # type: ignore
+        reply = await self._stub.ListEventSinks(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -692,7 +692,7 @@ class Simulation:
                 for path in sinks
             ]
         )
-        reply = await self._stub.GetEventSinkSchemas(request)  # type: ignore
+        reply = await self._stub.GetEventSinkSchemas(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -701,7 +701,7 @@ class Simulation:
             tuple(schema.sink.segments): json.loads(schema.event)
             for schema in reply.schemas
             if schema.event
-        }  # type: ignore
+        }
 
     async def inject_event(
         self, source: str | typing.Iterable[str], event: typing.Any = None
@@ -747,7 +747,7 @@ class Simulation:
             source=simulation_pb2.Path(segments=source),
             event=cbor2_converter.dumps(event),
         )
-        reply = await self._stub.InjectEvent(request)  # type: ignore
+        reply = await self._stub.InjectEvent(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -845,7 +845,7 @@ class Simulation:
 
         request = simulation_pb2.ScheduleEventRequest(**kwargs)
 
-        reply = await self._stub.ScheduleEvent(request)  # type: ignore
+        reply = await self._stub.ScheduleEvent(request)
 
         if reply.HasField("key"):
             key = EventKey()
@@ -871,8 +871,8 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
-        request = simulation_pb2.CancelEventRequest(key=key._key)  # type: ignore
-        reply = await self._stub.CancelEvent(request)  # type: ignore
+        request = simulation_pb2.CancelEventRequest(key=key._key)
+        reply = await self._stub.CancelEvent(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -913,7 +913,7 @@ class Simulation:
             source=simulation_pb2.Path(segments=source),
             event=cbor2_converter.dumps(event),
         )
-        reply = await self._stub.ProcessEvent(request)  # type: ignore
+        reply = await self._stub.ProcessEvent(request)
         if reply.HasField("error"):
             raise _to_error(reply.error)
 
@@ -976,7 +976,7 @@ class Simulation:
         kwargs["request"] = request_bytes
 
         request = simulation_pb2.ScheduleQueryRequest(**kwargs)
-        reply = await self._stub.ScheduleQuery(request)  # type: ignore
+        reply = await self._stub.ScheduleQuery(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -984,7 +984,7 @@ class Simulation:
         if reply_type is object:
             return [cbor2.loads(r) for r in reply.replies]
         else:
-            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
+            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore[arg-type]
 
     async def process_query(
         self,
@@ -1034,7 +1034,7 @@ class Simulation:
             source=simulation_pb2.Path(segments=source),
             request=cbor2_converter.dumps(request),
         )
-        reply = await self._stub.ProcessQuery(request)  # type: ignore
+        reply = await self._stub.ProcessQuery(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -1042,7 +1042,7 @@ class Simulation:
         if reply_type is object:
             return [cbor2.loads(r) for r in reply.replies]
         else:
-            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
+            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore[arg-type]
 
     async def try_read_events(
         self, sink: str | typing.Iterable[str], event_type: TypeForm[T] = object
@@ -1077,7 +1077,7 @@ class Simulation:
         request = simulation_pb2.TryReadEventsRequest(
             sink=simulation_pb2.Path(segments=sink)
         )
-        reply = await self._stub.TryReadEvents(request)  # type: ignore
+        reply = await self._stub.TryReadEvents(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -1085,7 +1085,7 @@ class Simulation:
         if event_type is object:
             return [cbor2.loads(reply) for reply in reply.events]
         else:
-            return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
+            return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore[arg-type]
 
     async def read_event(
         self,
@@ -1127,7 +1127,7 @@ class Simulation:
             sink=simulation_pb2.Path(segments=sink),
             timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos),
         )
-        reply = await self._stub.ReadEvent(request)  # type: ignore
+        reply = await self._stub.ReadEvent(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -1135,7 +1135,7 @@ class Simulation:
         if event_type is object:
             return cbor2.loads(reply.event)
         else:
-            return cbor2_converter.loads(reply.event, event_type)  # type: ignore
+            return cbor2_converter.loads(reply.event, event_type)  # type: ignore[arg-type]
 
     async def enable_sink(self, sink: str | typing.Iterable[str]) -> None:
         """Enables the reception of new events by the specified sink.
@@ -1160,7 +1160,7 @@ class Simulation:
         request = simulation_pb2.EnableSinkRequest(
             sink=simulation_pb2.Path(segments=sink)
         )
-        reply = await self._stub.EnableSink(request)  # type: ignore
+        reply = await self._stub.EnableSink(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -1188,7 +1188,7 @@ class Simulation:
         request = simulation_pb2.DisableSinkRequest(
             sink=simulation_pb2.Path(segments=sink)
         )
-        reply = await self._stub.DisableSink(request)  # type: ignore
+        reply = await self._stub.DisableSink(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)

@@ -3,7 +3,7 @@ import json
 import typing
 
 import cbor2
-import grpc  # type: ignore
+import grpc
 from google.protobuf.duration_pb2 import Duration as PbDuration
 from google.protobuf.timestamp_pb2 import Timestamp as PbTimestamp
 
@@ -75,7 +75,7 @@ class Simulation:
             else None
         )
 
-        self._channel = grpc.insecure_channel(address, options)  # type: ignore
+        self._channel = grpc.insecure_channel(address, options)
         self._stub = simulation_pb2_grpc.SimulationStub(self._channel)
 
     def __enter__(self) -> typing.Self:
@@ -503,7 +503,7 @@ class Simulation:
         else:
             kwargs["duration"] = PbDuration(seconds=deadline.secs, nanos=deadline.nanos)
 
-        request = simulation_pb2.StepUntilRequest(**kwargs)  # type: ignore
+        request = simulation_pb2.StepUntilRequest(**kwargs)
         reply = self._stub.StepUntil(request)
 
         if reply.HasField("time"):
@@ -537,7 +537,7 @@ class Simulation:
 
     def get_event_source_schemas(
         self, sources: typing.Iterable[str | typing.Iterable[str]]
-    ) -> dict[tuple[str], dict]:
+    ) -> dict[tuple[str, ...], dict]:
         """Retrieves the schema of the event sources specified in `sources`.
 
         This method requires the simulation bench to be built with the
@@ -574,7 +574,7 @@ class Simulation:
             tuple(schema.source.segments): json.loads(schema.event)
             for schema in reply.schemas
             if schema.event
-        }  # type: ignore
+        }
 
     def list_query_sources(self) -> list[list[str]]:
         """Lists available query sources.
@@ -603,7 +603,7 @@ class Simulation:
 
     def get_query_source_schemas(
         self, sources: typing.Iterable[str | typing.Iterable[str]]
-    ) -> dict[str, dict]:
+    ) -> dict[tuple[str, ...], dict]:
         """Retrieves the schema of the query sources specified in `sources`.
 
         This method requires the simulation bench to be built with the
@@ -642,7 +642,7 @@ class Simulation:
                 "reply": json.loads(schema.reply),
             }
             for schema in reply.schemas
-        }  # type: ignore
+        }
 
     def list_event_sinks(self) -> list[list[str]]:
         """Lists available event sinks.
@@ -700,7 +700,7 @@ class Simulation:
                 for path in sinks
             ]
         )
-        reply = self._stub.GetEventSinkSchemas(request)  # type: ignore
+        reply = self._stub.GetEventSinkSchemas(request)
 
         if reply.HasField("error"):
             raise _to_error(reply.error)
@@ -709,7 +709,7 @@ class Simulation:
             tuple(schema.sink.segments): json.loads(schema.event)
             for schema in reply.schemas
             if schema.event
-        }  # type: ignore
+        }
 
     def inject_event(
         self, source: str | typing.Iterable[str], event: typing.Any = None
@@ -878,7 +878,7 @@ class Simulation:
                 - [`SimulationNotStartedError`][nexosim.exceptions.SimulationNotStartedError]
         """
 
-        request = simulation_pb2.CancelEventRequest(key=key._key)  # type: ignore
+        request = simulation_pb2.CancelEventRequest(key=key._key)
         reply = self._stub.CancelEvent(request)
 
         if reply.HasField("error"):
@@ -992,7 +992,7 @@ class Simulation:
         if reply_type is object:
             return [cbor2.loads(r) for r in reply.replies]
         else:
-            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
+            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore[arg-type]
 
     def process_query(
         self,
@@ -1050,7 +1050,7 @@ class Simulation:
         if reply_type is object:
             return [cbor2.loads(r) for r in reply.replies]
         else:
-            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore
+            return [cbor2_converter.loads(r, reply_type) for r in reply.replies]  # type: ignore[arg-type]
 
     def try_read_events(
         self, sink: str | typing.Iterable[str], event_type: TypeForm[T] = object
@@ -1093,7 +1093,7 @@ class Simulation:
         if event_type is object:
             return [cbor2.loads(reply) for reply in reply.events]
         else:
-            return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore
+            return [cbor2_converter.loads(r, event_type) for r in reply.events]  # type: ignore[arg-type]
 
     def read_event(
         self,
@@ -1143,7 +1143,7 @@ class Simulation:
         if event_type is object:
             return cbor2.loads(reply.event)
         else:
-            return cbor2_converter.loads(reply.event, event_type)  # type: ignore
+            return cbor2_converter.loads(reply.event, event_type)  # type: ignore[arg-type]
 
     def enable_sink(self, sink: str | typing.Iterable[str]) -> None:
         """Enables the reception of new events by the specified sink.
