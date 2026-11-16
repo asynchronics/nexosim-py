@@ -575,6 +575,7 @@ parameter controls the type the read event will be mapped to.
 
 Events can be awaited using the [`read_event()`][nexosim.Simulation.read_event]
 method. The method will block until an event is received or the call times out.
+If the method is called without a timeout it will wait indefinitely.
 
 ```py
 from dataclasses import dataclass
