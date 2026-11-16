@@ -1098,7 +1098,7 @@ class Simulation:
     def read_event(
         self,
         sink: str | typing.Iterable[str],
-        timeout: Duration,
+        timeout: Duration | None = None,
         event_type: TypeForm[T] = object,
     ) -> T:
         """Waits for the next event from an event sink.
@@ -1107,6 +1107,10 @@ class Simulation:
 
         Args:
             sink: The path of the event sink.
+
+            timeout: Maximum time to wait for an event. When the timeout expires,
+                [`SinkReadTimeoutError`][nexosim.exceptions.SinkReadTimeoutError]
+                is raised. If set to `None`, the method waits indefinitely.
 
             event_type: The Python type to which events should be mapped. If
                 left unspecified, events are mapped to their canonical
@@ -1131,9 +1135,15 @@ class Simulation:
         """
         sink = sink if not isinstance(sink, str) else (sink,)
 
+        pb_timeout = (
+            None
+            if timeout is None
+            else PbDuration(seconds=timeout.secs, nanos=timeout.nanos)
+        )
+
         request = simulation_pb2.ReadEventRequest(
             sink=simulation_pb2.Path(segments=sink),
-            timeout=PbDuration(seconds=timeout.secs, nanos=timeout.nanos),
+            timeout=pb_timeout,
         )
         reply = self._stub.ReadEvent(request)
 

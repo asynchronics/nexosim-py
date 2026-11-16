@@ -7,6 +7,7 @@ from nexosim.exceptions import (
     BenchAlreadyBuiltError,
     BenchNotBuiltError,
     SimulationNotStartedError,
+    SinkReadTimeoutError,
 )
 from nexosim.time import Duration, MonotonicTime
 from nexosim.types import tuple_type
@@ -119,10 +120,23 @@ def test_process_event(sim):
     assert sim.try_read_events("flow_rate") == [4.5e-6]
 
 
-def test_read_event_as_str(sim):
+def test_try_read_events_as_str(sim):
     sim.process_event("brew_cmd")
 
     assert sim.try_read_events("flow_rate", str) == ["4.5e-06"]
+
+
+@pytest.mark.slow
+def test_read_event_timeout_raises_error(sim):
+    # Nothing is scheduled; Simulation.read_event waits 1 second.
+    with pytest.raises(SinkReadTimeoutError):
+        sim.read_event("flow_rate", Duration(secs=1, nanos=0))
+
+
+def test_read_event_no_timeout(sim):
+    sim.process_event("brew_cmd")
+
+    assert sim.read_event("flow_rate", None) == 4.5e-06
 
 
 def test_run(sim):

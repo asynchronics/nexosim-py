@@ -8,6 +8,7 @@ from nexosim.exceptions import (
     BenchAlreadyBuiltError,
     BenchNotBuiltError,
     SimulationNotStartedError,
+    SinkReadTimeoutError,
 )
 from nexosim.time import Duration, MonotonicTime
 from nexosim.types import tuple_type
@@ -259,6 +260,36 @@ async def test_await_event_cast(rt_sim):
         assert await rt_sim.read_event("flow_rate", Duration(2), str) == "4.5e-06"
 
     await asyncio.gather(step(), await_event())
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_read_event_no_timeout_receives_late_event(rt_sim):
+    await rt_sim.schedule_event(Duration(2), "brew_cmd")
+
+    async def step():
+        await rt_sim.step()
+
+    async def await_event():
+        assert await rt_sim.read_event("flow_rate", None) == 4.5e-6
+
+    await asyncio.gather(step(), await_event())
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_read_event_no_timeout_blocks(sim):
+    # Nothing is scheduled; Simulation.read_event waits indefinitely.
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(sim.read_event("flow_rate", None), timeout=3)
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_read_event_timeout_raises_error(sim):
+    # Nothing is scheduled; Simulation.read_event waits 1 second.
+    with pytest.raises(SinkReadTimeoutError):
+        await sim.read_event("flow_rate", Duration(secs=1, nanos=0))
 
 
 @pytest.mark.slow
